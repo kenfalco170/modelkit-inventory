@@ -1,5 +1,5 @@
 // Service Worker per PWA Android & Multi-PC
-const CACHE_NAME = 'modelkit-pwa-v9';
+const CACHE_NAME = 'modelkit-pwa-v11';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
