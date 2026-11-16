@@ -230,32 +230,82 @@ body {
 .cockpit-title-bar {
   display: flex;
   align-items: center;
-  gap: var(--space-xl);
-  flex-wrap: wrap;
+  width: 100%;
 }
 .branding-group {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  flex-shrink: 0;
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
 }
-.crest-svg { width: 44px; height: 44px; filter: drop-shadow(0 2px 4px rgba(0,85,255,0.2)); }
-.title-text-stack { display: flex; flex-direction: column; gap: 2px; }
+.crest-svg { width: 92px; height: 40px; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,85,255,0.18)); }
+.title-text-stack { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 .main-headline {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: 'Orbitron', var(--font-display), sans-serif;
+  font-size: clamp(18px, 3.2vw, 34px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
   line-height: 1.1;
   color: #0a225c;
+  background: linear-gradient(90deg, #0a225c 0%, #0055ff 60%, #0a225c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .headline-sub {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  letter-spacing: 0.22em;
   color: #0055ff;
   text-transform: uppercase;
+  border-top: 1px solid rgba(0,85,255,0.18);
+  padding-top: 4px;
 }
+
+/* ─── MENU A TENDINA MARCA KIT ─────────────────────────────────────────── */
+.brand-dropdown { position: relative; width: 100%; }
+.brand-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid #c0d0e4;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #0a225c;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.brand-dropdown-toggle:hover,
+.brand-dropdown-toggle[aria-expanded="true"] {
+  border-color: #0055ff;
+  box-shadow: 0 0 0 3px rgba(0,85,255,0.12);
+}
+.brand-dropdown-current { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand-dropdown-arrow { font-size: 10px; color: #0055ff; transition: transform 0.2s; }
+.brand-dropdown-toggle[aria-expanded="true"] .brand-dropdown-arrow { transform: rotate(180deg); }
+.brand-dropdown-panel {
+  margin-top: 8px;
+  padding: 10px;
+  background: #f7faff;
+  border: 1px solid #d4e2f2;
+  border-radius: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.brand-dropdown-panel[hidden] { display: none; }
 
 /* ─── CASSETTE DECK UNIT ────────────────────────────────────────────────── */
 .cassette-deck-unit {
@@ -1667,15 +1717,22 @@ body {
     gap: var(--space-xs);
   }
   .branding-group {
-    justify-content: center;
+    justify-content: flex-start;
+    gap: var(--space-sm);
   }
+  .crest-svg { width: 60px; height: 26px; }
   .main-headline {
-    font-size: 19px;
-    text-align: center;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    text-align: left;
+    white-space: normal;
   }
   .headline-sub {
-    text-align: center;
+    text-align: left;
+    font-size: 8px;
+    letter-spacing: 0.12em;
   }
+  .brand-dropdown-toggle { max-width: none; }
   .cassette-deck-unit {
     min-width: unset;
   }
