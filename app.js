@@ -2724,8 +2724,39 @@ function updateFilterUI() {
   });
 }
 
+function ensureStatusButtonsPresent() {
+  const statusMatrix = $('statusFilterMatrix');
+  if (statusMatrix && !statusMatrix.querySelector('[data-status="IN_TRANSIT"]')) {
+    const backlogBtn = statusMatrix.querySelector('[data-status="BACKLOG"]');
+    const btn = document.createElement('button');
+    btn.className = 'rocker-btn';
+    btn.dataset.status = 'IN_TRANSIT';
+    btn.innerHTML = '<span class="led-jewel cyan-led"></span><span class="rocker-text">🚚 ACQUISTATO IN ARRIVO</span>';
+    if (backlogBtn && backlogBtn.nextSibling) {
+      statusMatrix.insertBefore(btn, backlogBtn.nextSibling);
+    } else {
+      statusMatrix.appendChild(btn);
+    }
+  }
+
+  const formStatusDeck = $('formStatusDeck');
+  if (formStatusDeck && !formStatusDeck.querySelector('input[value="IN_TRANSIT"]')) {
+    const backlogInput = formStatusDeck.querySelector('input[value="BACKLOG"]');
+    const backlogLabel = backlogInput ? backlogInput.closest('label') : null;
+    const label = document.createElement('label');
+    label.className = 'status-radio-pill';
+    label.innerHTML = '<input type="radio" name="formStatus" value="IN_TRANSIT"><span class="pill-body">🚚 ACQUISTATO IN ARRIVO</span>';
+    if (backlogLabel && backlogLabel.nextSibling) {
+      formStatusDeck.insertBefore(label, backlogLabel.nextSibling);
+    } else {
+      formStatusDeck.appendChild(label);
+    }
+  }
+}
+
 // ─── BOOT SEQUENCE ────────────────────────────────────────────────────────────
 async function bootSystem() {
+  ensureStatusButtonsPresent();
   // Boot clock
   setInterval(updateClock, 1000);
   updateClock();
