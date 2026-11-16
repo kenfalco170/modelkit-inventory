@@ -15,6 +15,7 @@ const STATUS_LABELS = {
   COMPLETED:      '🏆 Costruito',
   WIP:            '🔧 In Costruzione',
   BACKLOG:        '📦 In Possesso (Da Costruire)',
+  IN_TRANSIT:     '🚚 Acquistato in Arrivo',
   WISHLIST:       '🔍 Mancante (Wishlist)',
   NOT_INTERESTED: '🚫 Mancante (Non Interessato)',
   OTHER:          '📌 Altro'
@@ -25,6 +26,7 @@ const STATUS_COLORS = {
   COMPLETED:      'var(--neon-magenta)',
   WIP:            'var(--neon-amber)',
   BACKLOG:        '#4488ff',
+  IN_TRANSIT:     '#0d9488',
   WISHLIST:       'var(--neon-orange)',
   NOT_INTERESTED: '#dc2626',
   OTHER:          '#64748b'
@@ -1382,7 +1384,7 @@ function refreshStats() {
   $('valEstimatedTotal').textContent  = totalEstimated.toFixed(2);
   $('boostFillBar').style.width       = wipRatio + '%';
   $('boostRatioText').textContent     = (wipRatio / 10).toFixed(1) + ' BAR';
-  if ($('tapeCounter')) $('tapeCounter').textContent = String(total).padStart(4, '0');
+  $('tapeCounter').textContent        = String(total).padStart(4, '0');
 
   // Animate tachometer (completion gauge)
   animateRadialGauge('tachoActiveArc', 'tachoNeedle', completionPct, 380, -225, 45);
@@ -1397,7 +1399,6 @@ function refreshStats() {
   const reelAnim = total > 0 && wip > 0;
   ['tapeReelLeft', 'tapeReelRight'].forEach(id => {
     const el = $(id);
-    if (!el) return;
     if (reelAnim) el.classList.add('tape-reel-spinning');
     else          el.classList.remove('tape-reel-spinning');
   });
@@ -1703,7 +1704,7 @@ async function handleFormSubmit(e) {
 
   // Auto-set progress for certain statuses
   if (model.status === 'COMPLETED') model.progress = 100;
-  if (model.status === 'BACKLOG' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
+  if (model.status === 'BACKLOG' || model.status === 'IN_TRANSIT' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
     if (model.progress === 0) model.stage = 'Non Iniziato (Backlog)';
   }
 
@@ -2323,22 +2324,6 @@ function setupEventListeners() {
     renderGrid();
   });
 
-  // Brand filter: menu a tendina apribile al clic
-  const setBrandDropdownOpen = (open) => {
-    const panel  = $('brandDropdownPanel');
-    const toggle = $('brandDropdownToggle');
-    if (!panel || !toggle) return;
-    panel.hidden = !open;
-    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-  };
-  $('brandDropdownToggle')?.addEventListener('click', e => {
-    e.stopPropagation();
-    setBrandDropdownOpen($('brandDropdownPanel').hidden);
-  });
-  document.addEventListener('click', e => {
-    if (!e.target.closest('#brandDropdown')) setBrandDropdownOpen(false);
-  });
-
   // Brand filter matrix (rocker buttons in alphabetical order)
   $('brandFilterMatrix')?.addEventListener('click', e => {
     const btn = e.target.closest('.rocker-btn');
@@ -2346,7 +2331,6 @@ function setupEventListeners() {
     filterBrand = btn.dataset.brand;
     updateFilterUI();
     renderGrid();
-    setBrandDropdownOpen(false);
   });
 
   // Search
@@ -2738,8 +2722,6 @@ function updateFilterUI() {
   document.querySelectorAll('#brandFilterMatrix .rocker-btn').forEach(btn => {
     btn.classList.toggle('active', (btn.dataset.brand || '').toLowerCase() === filterBrand.toLowerCase());
   });
-  const brandLabel = $('brandDropdownCurrent');
-  if (brandLabel) brandLabel.textContent = filterBrand === 'ALL' ? 'TUTTE' : filterBrand.toUpperCase();
 }
 
 // ─── BOOT SEQUENCE ────────────────────────────────────────────────────────────
