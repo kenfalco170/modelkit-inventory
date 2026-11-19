@@ -15,7 +15,6 @@ const STATUS_LABELS = {
   COMPLETED:      '🏆 Costruito',
   WIP:            '🔧 In Costruzione',
   BACKLOG:        '📦 In Possesso (Da Costruire)',
-  IN_TRANSIT:     '🚚 Acquistato in Arrivo',
   WISHLIST:       '🔍 Mancante (Wishlist)',
   NOT_INTERESTED: '🚫 Mancante (Non Interessato)',
   OTHER:          '📌 Altro'
@@ -26,7 +25,6 @@ const STATUS_COLORS = {
   COMPLETED:      'var(--neon-magenta)',
   WIP:            'var(--neon-amber)',
   BACKLOG:        '#4488ff',
-  IN_TRANSIT:     '#0d9488',
   WISHLIST:       'var(--neon-orange)',
   NOT_INTERESTED: '#dc2626',
   OTHER:          '#64748b'
@@ -737,9 +735,62 @@ function normalizeModelTaxonomy(m, convertBacklogToWishlist = false) {
   return changed;
 }
 
+const TAMIYA_120_RESET_KEY = 'modelkit_tamiya120_wishlist_reset_v1';
+
+function isTamiya120Model(m) {
+  if (!m) return false;
+  const brand = (m.brand || '').trim().toLowerCase();
+  const scale = (m.scale || '').trim();
+  const code  = (m.kitCode || '').trim();
+  return (brand === 'tamiya' && (scale === '1/20' || scale === '1:20' || scale === '1/20 Grand Prix')) || code.startsWith('Tamiya 200');
+}
+
+function resetTamiya120ModelsInList(models) {
+  const officialByCode = new Map();
+  TAMIYA_1_20_MODELS.forEach(o => {
+    if (o.kitCode) officialByCode.set(o.kitCode.trim().toLowerCase(), o);
+  });
+  let changed = false;
+  for (const m of models) {
+    if (!isTamiya120Model(m)) continue;
+    const official = m.kitCode ? officialByCode.get(m.kitCode.trim().toLowerCase()) : null;
+    if (
+      m.status !== 'WISHLIST' ||
+      (m.progress || 0) !== 0 ||
+      m.stage !== 'Non Iniziato (Backlog)' ||
+      (m.location || '') !== '' ||
+      (m.purchasePrice || 0) !== 0 ||
+      (m.estimatedValue || 0) !== 0 ||
+      (m.aftermarket || '') !== '' ||
+      m.photo !== null ||
+      m.scale !== '1/20'
+    ) {
+      m.status         = 'WISHLIST';
+      m.progress       = 0;
+      m.stage          = 'Non Iniziato (Backlog)';
+      m.location       = '';
+      m.purchasePrice  = 0;
+      m.estimatedValue = 0;
+      m.aftermarket    = '';
+      m.photo          = null;
+      m.scale          = '1/20';
+      if (official) {
+        m.name     = official.name;
+        m.brand    = official.brand;
+        m.category = official.category;
+        m.year     = official.year;
+        m.paints   = official.paints;
+        m.notes    = official.notes;
+      }
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 function renderBrandFilterButtons() {
-  const container = $('brandFilterMatrix');
   const datalist = $('brandListOptions');
+  if (!datalist) return;
 
   const brandMap = new Map();
   KNOWN_KIT_BRANDS.forEach(b => {
@@ -756,31 +807,7 @@ function renderBrandFilterButtons() {
     a.localeCompare(b, 'it', { sensitivity: 'base' })
   );
 
-  if (datalist) {
-    datalist.innerHTML = sortedBrands.map(b => `<option value="${escHtml(b)}">`).join('');
-  }
-
-  if (!container) return;
-
-  const leds = ['blue-led', 'amber-led', 'magenta-led', 'cyan-led', 'orange-led', 'red-led'];
-  const buttonsHtml = [
-    `<button class="rocker-btn ${filterBrand === 'ALL' ? 'active' : ''}" data-brand="ALL">
-      <span class="led-jewel cyan-led"></span>
-      <span class="rocker-text">TUTTE</span>
-    </button>`
-  ];
-
-  sortedBrands.forEach((brand, idx) => {
-    const isActive = filterBrand.toLowerCase() === brand.toLowerCase();
-    const ledClass = leds[idx % leds.length];
-    buttonsHtml.push(`
-      <button class="rocker-btn ${isActive ? 'active' : ''}" data-brand="${escHtml(brand)}" title="Filtra per marca: ${escHtml(brand)}">
-        <span class="led-jewel ${ledClass}"></span>
-        <span class="rocker-text">${escHtml(brand.toUpperCase())}</span>
-      </button>`);
-  });
-
-  container.innerHTML = buttonsHtml.join('');
+  datalist.innerHTML = sortedBrands.map(b => `<option value="${escHtml(b)}">`).join('');
 }
 
 async function importTamiya124Data(forceSync = false) {
@@ -801,6 +828,8 @@ async function importTamiya124Data(forceSync = false) {
 
   showToast(`🚗 Importazione in corso di ${toAdd.length} kit 1/24 Sports Car Series...`, 'cyan');
 
+  const addedCodes = new Set(toAdd.map(m => (m.kitCode || '').trim().toLowerCase()));
+
   if (db) {
     await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -818,27 +847,29 @@ async function importTamiya124Data(forceSync = false) {
       allModels.push(item);
     });
     try {
-      localStorage.setItem('outrunElanModels', JSON.stringify(allModels));
+      localStorage.setItem(getLocalStorageKey(), JSON.stringify(allModels));
     } catch (e) {
       console.warn('localStorage full:', e);
     }
   }
 
-  // Sincronizzazione in batch su Google Cloud Firestore
-  if (firestoreDb && isCloudSyncActive && !isApplyingCloudSnapshot) {
+  // Sincronizzazione in batch su Google Cloud Firestore (database personale dell'utente)
+  const userCol = getUserModelsCollection();
+  if (userCol && isCloudSyncActive && !isApplyingCloudSnapshot) {
     try {
+      const newlySaved = allModels.filter(m => addedCodes.has((m.kitCode || '').trim().toLowerCase()));
       const BATCH_SIZE = 400;
-      for (let i = 0; i < toAdd.length; i += BATCH_SIZE) {
-        const chunk = toAdd.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < newlySaved.length; i += BATCH_SIZE) {
+        const chunk = newlySaved.slice(i, i + BATCH_SIZE);
         const batch = firestoreDb.batch();
         for (const m of chunk) {
           const docId = String(m.id || Date.now() + Math.floor(Math.random() * 100000));
-          const docRef = firestoreDb.collection('models').doc(docId);
+          const docRef = userCol.doc(docId);
           batch.set(docRef, { ...m, id: m.id }, { merge: true });
         }
         await batch.commit();
       }
-      console.log('☁️ Catalogo 1/24 Tamiya sincronizzato con successo su Cloud Firestore!');
+      console.log('☁️ Catalogo 1/24 Tamiya sincronizzato nel database personale su Cloud Firestore!');
     } catch (err) {
       console.warn('Errore sync Firestore per 1/24:', err);
     }
@@ -852,10 +883,26 @@ async function importTamiya124Data(forceSync = false) {
 // ─── DOM REFERENCES ─────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-// ─── INDEXEDDB SETUP ────────────────────────────────────────────────────────
-function openDatabase() {
+// ─── INDEXEDDB SETUP (ISOLATO PER OGNI UTENTE) ─────────────────────────────
+let activeUserId = null;
+
+function getLocalStorageKey(uid = activeUserId) {
+  return uid ? `outrunElanModels_${uid}` : 'outrunElanModels_guest';
+}
+
+function getUserModelsCollection() {
+  if (!firestoreDb || !activeUserId) return null;
+  return firestoreDb.collection('users').doc(activeUserId).collection('models');
+}
+
+function openDatabase(uid = activeUserId) {
+  if (db) {
+    try { db.close(); } catch {}
+    db = null;
+  }
+  const dbName = uid ? `${DB_NAME}_${uid}` : DB_NAME;
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    const req = indexedDB.open(dbName, DB_VERSION);
     req.onupgradeneeded = e => {
       const database = e.target.result;
       if (!database.objectStoreNames.contains(STORE_NAME)) {
@@ -873,6 +920,7 @@ function openDatabase() {
 }
 
 function getAllModels() {
+  if (!db) return Promise.resolve([]);
   return new Promise((resolve, reject) => {
     const tx    = db.transaction(STORE_NAME, 'readonly');
     const store = tx.objectStore(STORE_NAME);
@@ -882,7 +930,7 @@ function getAllModels() {
   });
 }
 
-// ─── FIREBASE CLOUD FIRESTORE INTEGRATION ──────────────────────────────────
+// ─── FIREBASE CLOUD FIRESTORE & AUTH (ARCHIVIO PERSONALE OBBLIGATORIO) ─────
 const firebaseConfig = {
   apiKey: "AIzaSyBOqP0rFWilBPTmADQlJWlwIC4scVmBCiU",
   authDomain: "modelkit-inventory.firebaseapp.com",
@@ -895,102 +943,23 @@ const firebaseConfig = {
 let firestoreDb = null;
 let firebaseAuth = null;
 let currentCloudUser = null;
-let activeLocalTestUser = null;
 let firestoreUnsubscribe = null;
 let isCloudSyncActive = false;
 let isApplyingCloudSnapshot = false;
+let isSeedingNewUser = false;
 
-const TEST_USERS_STORAGE_KEY = 'modelkitTestUsersRegistry';
-const ACTIVE_TEST_USER_KEY   = 'modelkitActiveTestUser';
-
-function getTestUsersRegistry() {
-  try {
-    const raw = localStorage.getItem(TEST_USERS_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+function isAuthenticatedUser(user) {
+  return Boolean(user && !user.isAnonymous && user.uid && user.email);
 }
 
-async function saveTestUsersRegistry(usersList, syncCloud = true) {
-  try {
-    localStorage.setItem(TEST_USERS_STORAGE_KEY, JSON.stringify(usersList));
-  } catch (e) {
-    console.warn('Errore salvataggio utenti locale:', e);
-  }
-  if (syncCloud && firestoreDb && isCloudSyncActive) {
-    try {
-      await firestoreDb.collection('models').doc('_system_test_users').set({
-        id: '_system_test_users',
-        isSystemDoc: true,
-        updatedAt: new Date().toISOString(),
-        users: usersList
-      }, { merge: true });
-    } catch (e) {
-      console.warn('Sync utenti su Firestore non riuscito:', e);
-    }
-  }
-}
-
-function getEffectiveActiveUser() {
-  if (activeLocalTestUser) return activeLocalTestUser;
-  if (currentCloudUser && !currentCloudUser.isAnonymous) {
-    return {
-      email: currentCloudUser.email,
-      name: currentCloudUser.displayName || (currentCloudUser.email ? currentCloudUser.email.split('@')[0] : 'Utente'),
-      isAnonymous: false
-    };
-  }
-  try {
-    const saved = localStorage.getItem(ACTIVE_TEST_USER_KEY);
-    if (saved) {
-      activeLocalTestUser = JSON.parse(saved);
-      return activeLocalTestUser;
-    }
-  } catch {}
-  return currentCloudUser;
-}
-
-function renderTestUsersList() {
-  const container = $('testUsersListContainer');
-  const countLabel = $('testUsersCountLabel');
-  if (!container) return;
-
-  const users = getTestUsersRegistry();
-  const activeUser = getEffectiveActiveUser();
-  const activeEmail = (activeUser && activeUser.email ? activeUser.email : '').toLowerCase();
-
-  if (countLabel) {
-    countLabel.textContent = `👥 UTENTI REGISTRATI PER IL TEST (${users.length} / min. 5 supportati)`;
-  }
-
-  if (users.length === 0) {
-    container.innerHTML = `
-      <div style="padding: 0.75rem; border: 1px dashed #b8cde6; border-radius: 4px; text-align: center; font-family: var(--font-mono); font-size: 10px; color: #607898;">
-        Nessun utente registrato. Compila il modulo qui sopra e premi <strong>+ REGISTRA NUOVO UTENTE</strong> (puoi registrarne 5 o più per effettuare i test).
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = users.map((u, idx) => {
-    const isCurrent = activeEmail && u.email.toLowerCase() === activeEmail;
-    return `
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; padding:0.5rem 0.75rem; background:${isCurrent ? '#e6f0ff' : '#ffffff'}; border:1px solid ${isCurrent ? '#0055ff' : '#cdddf0'}; border-radius:4px;">
-        <div style="display:flex; align-items:center; gap:0.5rem; min-width:0; flex:1;">
-          <span style="font-family:var(--font-mono); font-size:9px; font-weight:800; background:#0a225c; color:#ffffff; padding:2px 6px; border-radius:3px;">#${idx + 1}</span>
-          <div style="display:flex; flex-direction:column; min-width:0;">
-            <strong style="font-family:var(--font-mono); font-size:11px; color:#0a225c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${escHtml(u.name || u.email.split('@')[0])} ${isCurrent ? '<span style="color:#0055ff;">(ATTIVO)</span>' : ''}
-            </strong>
-            <small style="font-family:var(--font-mono); font-size:9.5px; color:#557299; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(u.email)}</small>
-          </div>
-        </div>
-        <div style="display:flex; gap:0.35rem; flex-shrink:0;">
-          ${!isCurrent ? `<button type="button" class="btn-micro" data-testuser-login="${escHtml(u.email)}" style="color:#0055ff; border-color:#0055ff;">↪ USA</button>` : ''}
-          <button type="button" class="btn-micro card-btn-danger" data-testuser-delete="${escHtml(u.email)}" title="Rimuovi utente test">✕</button>
-        </div>
-      </div>`;
-  }).join('');
+function setAppLocked(locked) {
+  document.body.classList.toggle('app-auth-locked', locked);
+  const modal = $('authModalBackdrop');
+  const closeBtn = $('btnAuthModalClose');
+  const footer = $('authModalFooter');
+  if (modal) modal.classList.toggle('auth-mandatory-lock', locked);
+  if (closeBtn) closeBtn.style.display = locked ? 'none' : '';
+  if (footer) footer.style.display = locked ? 'none' : '';
 }
 
 function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
@@ -999,28 +968,25 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
   const storageDisplay = $('storageTypeDisplay');
   const statusBanner = $('authStatusBanner');
   const logoutSection = $('authLogoutSection');
+  const loginSection = $('authLoginSection');
 
-  const effectiveUser = getEffectiveActiveUser() || user;
-  const usersList = getTestUsersRegistry();
-  const hasNamedUser = effectiveUser && !effectiveUser.isAnonymous && effectiveUser.email;
+  const loggedIn = isAuthenticatedUser(user);
+  const displayName = loggedIn ? (user.displayName || user.email.split('@')[0]) : '';
 
   if (usersBtn) {
-    usersBtn.textContent = hasNamedUser
-      ? `👤 ${(effectiveUser.name || effectiveUser.email.split('@')[0]).toUpperCase()} (${usersList.length})`
-      : `👤 UTENTI TEST (${usersList.length}/5+)`;
+    usersBtn.textContent = loggedIn
+      ? `👤 ${displayName.toUpperCase()}`
+      : '🔒 ACCEDI / REGISTRATI';
   }
 
-  if (effectiveUser || isCloudSyncActive) {
-    const label = hasNamedUser
-      ? `☁️ CLOUD: ${effectiveUser.email.split('@')[0].toUpperCase()}`
-      : '☁️ CLOUD: PROTETTO (AUTO)';
+  if (loggedIn) {
     if (badge) {
-      badge.textContent = label;
+      badge.textContent = `☁️ ARCHIVIO: ${displayName.toUpperCase()}`;
       badge.style.background = '#eef5ff';
       badge.style.color = '#0055ff';
       badge.style.borderColor = '#0055ff';
     }
-    if (storageDisplay) storageDisplay.textContent = 'FIRESTORE_AUTH';
+    if (storageDisplay) storageDisplay.textContent = 'FIRESTORE_PRIVATO';
     if (statusBanner) {
       if (errorMsg) {
         statusBanner.style.background = isSuccessMsg ? '#ecfdf5' : '#fff7ed';
@@ -1031,35 +997,35 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
         statusBanner.style.background = '#ecfdf5';
         statusBanner.style.borderColor = '#6ee7b7';
         statusBanner.style.color = '#065f46';
-        statusBanner.innerHTML = hasNamedUser
-          ? `✓ <strong>Utente attivo:</strong> ${escHtml(effectiveUser.name || '')} (${escHtml(effectiveUser.email)}) — Utenti registrati: <strong>${usersList.length}</strong>`
-          : `✓ <strong>Connessione Cloud attiva.</strong> Utenti registrati per il test: <strong>${usersList.length}</strong>. Puoi registrare o accedere con almeno 5 utenti qui sotto.`;
+        statusBanner.innerHTML = `✓ <strong>Archivio personale attivo:</strong> ${escHtml(displayName)} (${escHtml(user.email)}). I tuoi modellini sono salvati nel tuo database privato.`;
       }
     }
-    if (logoutSection) logoutSection.style.display = hasNamedUser ? 'flex' : 'none';
+    if (logoutSection) logoutSection.style.display = 'flex';
+    if (loginSection) loginSection.style.display = 'none';
   } else {
     if (badge) {
-      badge.textContent = '🔒 CLOUD: ACCEDI';
+      badge.textContent = '🔒 ACCESSO RICHIESTO';
       badge.style.background = '#fff7ed';
       badge.style.color = '#d97706';
       badge.style.borderColor = '#f59e0b';
     }
-    if (storageDisplay) storageDisplay.textContent = 'INDEXED_DB (LOCALE)';
+    if (storageDisplay) storageDisplay.textContent = 'BLOCCATO';
     if (statusBanner) {
-      statusBanner.style.background = '#fff7ed';
-      statusBanner.style.borderColor = '#fdba74';
-      statusBanner.style.color = '#9a3412';
+      statusBanner.style.background = errorMsg && !isSuccessMsg ? '#fef2f2' : '#fff7ed';
+      statusBanner.style.borderColor = errorMsg && !isSuccessMsg ? '#fca5a5' : '#fdba74';
+      statusBanner.style.color = errorMsg && !isSuccessMsg ? '#991b1b' : '#9a3412';
       statusBanner.innerHTML = errorMsg
-        ? `⚠️ ${escHtml(errorMsg)}`
-        : '🔒 <strong>Autenticazione richiesta:</strong> Registra un nuovo utente o accedi con Email e Password qui sotto.';
+        ? `${isSuccessMsg ? '✓' : '⚠️'} ${escHtml(errorMsg)}`
+        : '🔒 <strong>Registrazione obbligatoria:</strong> accedi o crea un nuovo account con Email e Password per avere il tuo database e archivio personale.';
     }
     if (logoutSection) logoutSection.style.display = 'none';
+    if (loginSection) loginSection.style.display = 'flex';
   }
-
-  renderTestUsersList();
 }
 
-function openAuthModal() {
+function openAuthModal(mandatory = false) {
+  const mustLock = mandatory || !isAuthenticatedUser(currentCloudUser);
+  setAppLocked(mustLock);
   updateAuthUI(currentCloudUser);
   const modal = $('authModalBackdrop');
   if (modal) {
@@ -1069,6 +1035,7 @@ function openAuthModal() {
 }
 
 function closeAuthModal() {
+  if (!isAuthenticatedUser(currentCloudUser)) return;
   const modal = $('authModalBackdrop');
   if (modal) {
     modal.style.display = 'none';
@@ -1076,9 +1043,123 @@ function closeAuthModal() {
   }
 }
 
+async function seedNewUserPersonalArchive() {
+  if (isSeedingNewUser || !activeUserId) return;
+  isSeedingNewUser = true;
+  try {
+    const nowIso = new Date().toISOString();
+    const initialCatalog = [
+      ...TAMIYA_1_20_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, stage: 'Non Iniziato (Backlog)', location: '', purchasePrice: 0, estimatedValue: 0, aftermarket: '', photo: null, scale: '1/20', addedAt: nowIso })),
+      ...(typeof TAMIYA_1_24_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_24_MODELS)
+        ? TAMIYA_1_24_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : [])
+    ];
+
+    if (db) {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        initialCatalog.forEach(item => store.add(item));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      allModels = await getAllModels();
+    } else {
+      allModels = initialCatalog.map((item, idx) => ({ ...item, id: idx + 1 }));
+      try { localStorage.setItem(getLocalStorageKey(), JSON.stringify(allModels)); } catch {}
+    }
+
+    // Marca il reset 1/20 come già eseguito per questo nuovo utente
+    localStorage.setItem(`${TAMIYA_120_RESET_KEY}_${activeUserId}`, '1');
+    localStorage.setItem(`${WISHLIST_MIGRATION_KEY}_${activeUserId}`, '1');
+
+    const userCol = getUserModelsCollection();
+    if (userCol && isCloudSyncActive) {
+      const BATCH_SIZE = 400;
+      for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
+        const chunk = allModels.slice(i, i + BATCH_SIZE);
+        const batch = firestoreDb.batch();
+        for (const m of chunk) {
+          const docId = String(m.id);
+          batch.set(userCol.doc(docId), { ...m, id: m.id });
+        }
+        await batch.commit();
+      }
+    }
+
+    renderBrandFilterButtons();
+    renderGrid();
+    refreshStats();
+    showToast(`✓ Archivio personale creato! ${allModels.length} kit (tutti i Tamiya 1/20 in Wishlist).`, 'cyan');
+  } catch (err) {
+    console.error('Errore creazione archivio iniziale utente:', err);
+  } finally {
+    isSeedingNewUser = false;
+  }
+}
+
+async function activateUserSession(user) {
+  currentCloudUser = user;
+  activeUserId = user.uid;
+  isCloudSyncActive = true;
+
+  setAppLocked(false);
+  updateAuthUI(user);
+  closeAuthModal();
+
+  try {
+    db = await openDatabase(user.uid);
+    allModels = await getAllModels();
+  } catch (err) {
+    console.warn('IndexedDB non disponibile, uso localStorage per utente:', err);
+    db = null;
+    try {
+      const raw = localStorage.getItem(getLocalStorageKey(user.uid));
+      allModels = raw ? JSON.parse(raw) : [];
+    } catch { allModels = []; }
+  }
+
+  // Salva/aggiorna profilo utente in Firestore
+  if (firestoreDb) {
+    firestoreDb.collection('users').doc(user.uid).set({
+      email: user.email,
+      displayName: user.displayName || user.email.split('@')[0],
+      lastLoginAt: new Date().toISOString()
+    }, { merge: true }).catch(() => {});
+  }
+
+  renderBrandFilterButtons();
+  updateFilterUI();
+  renderGrid();
+  refreshStats();
+
+  startFirestoreListener();
+}
+
+function deactivateUserSession(message = null) {
+  if (firestoreUnsubscribe) {
+    firestoreUnsubscribe();
+    firestoreUnsubscribe = null;
+  }
+  if (db) {
+    try { db.close(); } catch {}
+    db = null;
+  }
+  currentCloudUser = null;
+  activeUserId = null;
+  isCloudSyncActive = false;
+  allModels = [];
+  renderGrid();
+  refreshStats();
+  setAppLocked(true);
+  updateAuthUI(null, message);
+  openAuthModal(true);
+}
+
 async function initFirestore() {
   if (typeof firebase === 'undefined') {
     console.warn('Firebase SDK non disponibile nel browser.');
+    deactivateUserSession('Impossibile contattare il servizio di autenticazione Firebase. Verifica la connessione internet.');
     return false;
   }
   try {
@@ -1096,136 +1177,126 @@ async function initFirestore() {
     if (typeof firebase.auth === 'function') {
       firebaseAuth = firebase.auth();
       firebaseAuth.onAuthStateChanged(async (user) => {
-        currentCloudUser = user;
-        if (user) {
-          isCloudSyncActive = true;
-          updateAuthUI(user);
-          startFirestoreListener();
-          console.log('%c☁️ Google Cloud Firestore autenticato e collegato!', 'color:#0055ff;font-weight:bold;');
+        if (isAuthenticatedUser(user)) {
+          await activateUserSession(user);
+          console.log('%c☁️ Archivio personale Firebase autenticato e collegato!', 'color:#0055ff;font-weight:bold;');
         } else {
-          isCloudSyncActive = false;
-          if (firestoreUnsubscribe) {
-            firestoreUnsubscribe();
-            firestoreUnsubscribe = null;
+          if (user && user.isAnonymous) {
+            try { await firebaseAuth.signOut(); } catch {}
           }
-          // Tenta l'accesso anonimo automatico se abilitato nella Console Firebase
-          try {
-            await firebaseAuth.signInAnonymously();
-          } catch (anonErr) {
-            console.info('Accesso anonimo non attivo o richiesto login manuale:', anonErr.code);
-            updateAuthUI(null);
-          }
+          deactivateUserSession();
         }
       });
     } else {
-      isCloudSyncActive = true;
-      startFirestoreListener();
+      deactivateUserSession('Modulo Firebase Authentication non caricato.');
     }
     return true;
   } catch (err) {
     console.error('Errore inizializzazione Firestore:', err);
     isCloudSyncActive = false;
+    deactivateUserSession('Errore connessione Firebase. Riprova tra qualche istante.');
     return false;
   }
 }
 
 function startFirestoreListener() {
-  if (!firestoreDb) return;
+  const userCol = getUserModelsCollection();
+  if (!userCol) return;
   if (firestoreUnsubscribe) {
     firestoreUnsubscribe();
     firestoreUnsubscribe = null;
   }
 
-  firestoreUnsubscribe = firestoreDb.collection('models').onSnapshot(async (snapshot) => {
-    // Se la collezione nel cloud è vuota ma abbiamo modelli locali, esportiamo verso il cloud in blocchi da 400
-    if (snapshot.empty && allModels.length > 0) {
-      console.log('☁️ Sincronizzazione iniziale: upload modelli verso Cloud Firestore...');
-      const BATCH_SIZE = 400;
-      for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
-        const chunk = allModels.slice(i, i + BATCH_SIZE);
-        const batch = firestoreDb.batch();
-        for (const m of chunk) {
-          const docId = String(m.id || Date.now());
-          const docRef = firestoreDb.collection('models').doc(docId);
-          batch.set(docRef, { ...m, id: m.id });
+  firestoreUnsubscribe = userCol.onSnapshot(async (snapshot) => {
+    // Se l'archivio cloud personale è vuoto: crea il catalogo pulito (tutti i 1/20 in Wishlist) oppure carica eventuali dati locali
+    if (snapshot.empty) {
+      if (allModels.length === 0) {
+        await seedNewUserPersonalArchive();
+      } else {
+        console.log('☁️ Upload archivio locale verso il database personale Cloud...');
+        const BATCH_SIZE = 400;
+        for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
+          const chunk = allModels.slice(i, i + BATCH_SIZE);
+          const batch = firestoreDb.batch();
+          for (const m of chunk) {
+            const docId = String(m.id || Date.now());
+            batch.set(userCol.doc(docId), { ...m, id: m.id });
+          }
+          await batch.commit();
         }
-        await batch.commit();
+        showToast('☁️ Archivio personale sincronizzato nel Cloud!', 'cyan');
       }
-      showToast('☁️ Collezione sincronizzata con Google Cloud Firestore!', 'cyan');
       return;
     }
 
-    // Se ci sono dati nel cloud, li sincronizziamo in tempo reale
-    if (!snapshot.empty) {
-      isApplyingCloudSnapshot = true;
-      const cloudModels = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (doc.id === '_system_test_users' || data.isSystemDoc) {
-          if (Array.isArray(data.users)) {
-            saveTestUsersRegistry(data.users, false);
-            renderTestUsersList();
-          }
-          return;
-        }
-        data.id = data.id || parseInt(doc.id, 10) || doc.id;
-        cloudModels.push(data);
-      });
+    // Dati presenti nel database personale dell'utente: sincronizzazione in tempo reale
+    isApplyingCloudSnapshot = true;
+    const cloudModels = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (doc.id === '_system_test_users' || data.isSystemDoc) return;
+      data.id = data.id || parseInt(doc.id, 10) || doc.id;
+      cloudModels.push(data);
+    });
 
-      // Ordina per ID o codice
-      allModels = cloudModels;
+    allModels = cloudModels;
 
-      // Migrazione automatica stato di default (Wishlist), scala 1/20 e categorie (Sport Car, Formula 1, Rally)
-      const shouldConvertBacklog = !localStorage.getItem(WISHLIST_MIGRATION_KEY);
-      let needCloudUpdate = false;
-      for (const m of cloudModels) {
-        if (normalizeModelTaxonomy(m, shouldConvertBacklog)) {
-          needCloudUpdate = true;
-        }
+    // Reset una tantum di eventuali personalizzazioni sui Tamiya 1/20 (tutti in WISHLIST)
+    let needCloudUpdate = false;
+    const resetFlagKey = `${TAMIYA_120_RESET_KEY}_${activeUserId}`;
+    if (!localStorage.getItem(resetFlagKey)) {
+      if (resetTamiya120ModelsInList(cloudModels)) {
+        needCloudUpdate = true;
       }
-      if (shouldConvertBacklog) {
-        localStorage.setItem(WISHLIST_MIGRATION_KEY, '1');
-      }
-      if (needCloudUpdate && firestoreDb) {
-        setTimeout(async () => {
-          try {
-            const BATCH_SIZE = 400;
-            for (let i = 0; i < cloudModels.length; i += BATCH_SIZE) {
-              const chunk = cloudModels.slice(i, i + BATCH_SIZE);
-              const batch = firestoreDb.batch();
-              for (const m of chunk) {
-                const docId = String(m.id);
-                const docRef = firestoreDb.collection('models').doc(docId);
-                batch.set(docRef, { ...m, id: m.id }, { merge: true });
-              }
-              await batch.commit();
-            }
-            console.log('☁️ Migrazione automatica Wishlist, scale e categorie sincronizzata su Cloud Firestore!');
-          } catch (e) {
-            console.warn('Errore sync batch migrazione:', e);
-          }
-        }, 500);
-      }
-
-      // Aggiorna anche IndexedDB locale per backup offline
-      if (db) {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        for (const m of cloudModels) {
-          store.put(m);
-        }
-      }
-
-      renderBrandFilterButtons();
-      renderGrid();
-      refreshStats();
-      isApplyingCloudSnapshot = false;
+      localStorage.setItem(resetFlagKey, '1');
     }
+
+    for (const m of cloudModels) {
+      if (normalizeModelTaxonomy(m, false)) {
+        needCloudUpdate = true;
+      }
+    }
+
+    if (needCloudUpdate && userCol) {
+      setTimeout(async () => {
+        try {
+          const BATCH_SIZE = 400;
+          for (let i = 0; i < cloudModels.length; i += BATCH_SIZE) {
+            const chunk = cloudModels.slice(i, i + BATCH_SIZE);
+            const batch = firestoreDb.batch();
+            for (const m of chunk) {
+              const docId = String(m.id);
+              batch.set(userCol.doc(docId), { ...m, id: m.id }, { merge: true });
+            }
+            await batch.commit();
+          }
+          console.log('☁️ Reset Tamiya 1/20 in Wishlist sincronizzato sul database personale!');
+        } catch (e) {
+          console.warn('Errore sync batch aggiornamento:', e);
+        }
+      }, 400);
+    }
+
+    // Aggiorna IndexedDB locale personale dell'utente
+    if (db) {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.clear();
+      for (const m of cloudModels) {
+        store.put(m);
+      }
+    }
+
+    renderBrandFilterButtons();
+    renderGrid();
+    refreshStats();
+    isApplyingCloudSnapshot = false;
   }, (err) => {
     console.warn('Firestore snapshot error:', err);
     if (err && err.code === 'permission-denied') {
       isCloudSyncActive = false;
-      updateAuthUI(null, 'Accesso Cloud bloccato dalle regole di sicurezza: effettua il login qui sotto.');
+      updateAuthUI(currentCloudUser, 'Permessi Firestore mancanti per users/{uid}/models: aggiorna le Regole di Sicurezza in Firebase Console.');
+      showToast('⚠️ Aggiorna le regole Firestore per users/{uid}/models', 'amber');
     }
   });
 }
@@ -1243,11 +1314,12 @@ async function saveModel(model) {
     model.id = id;
   }
 
-  // Sincronizzazione automatica su Google Cloud Firestore
-  if (firestoreDb && isCloudSyncActive && !isApplyingCloudSnapshot) {
+  // Sincronizzazione automatica nel database personale dell'utente su Cloud Firestore
+  const userCol = getUserModelsCollection();
+  if (userCol && isCloudSyncActive && !isApplyingCloudSnapshot) {
     try {
       const docId = String(model.id || Date.now());
-      await firestoreDb.collection('models').doc(docId).set({ ...model, id: model.id }, { merge: true });
+      await userCol.doc(docId).set({ ...model, id: model.id }, { merge: true });
     } catch (err) {
       console.error('Errore sincronizzazione Cloud saveModel:', err);
     }
@@ -1267,10 +1339,11 @@ async function deleteModelById(id) {
     });
   }
 
-  // Eliminazione automatica su Google Cloud Firestore
-  if (firestoreDb && isCloudSyncActive && !isApplyingCloudSnapshot) {
+  // Eliminazione automatica nel database personale dell'utente su Cloud Firestore
+  const userCol = getUserModelsCollection();
+  if (userCol && isCloudSyncActive && !isApplyingCloudSnapshot) {
     try {
-      await firestoreDb.collection('models').doc(String(id)).delete();
+      await userCol.doc(String(id)).delete();
     } catch (err) {
       console.error('Errore eliminazione Cloud deleteModelById:', err);
     }
@@ -1317,18 +1390,15 @@ function getFilteredSorted() {
       return m.category === filterCategory;
     });
   }
-  if (filterBrand !== 'ALL') {
-    const targetBrand = filterBrand.toLowerCase();
-    list = list.filter(m => {
-      const mb = (m.brand || '').trim().toLowerCase();
-      if (targetBrand === 'beemax / nunu') {
-        return mb === 'beemax / nunu' || mb === 'beemax' || mb === 'nunu';
-      }
-      if (targetBrand === 'model factory hiro') {
-        return mb === 'model factory hiro' || mb === 'mfh' || mb === 'model factory hiro (mfh)';
-      }
-      return mb === targetBrand;
-    });
+  if (filterBrand && filterBrand !== 'ALL') {
+    const targetBrand = filterBrand.trim().toLowerCase();
+    if (targetBrand) {
+      list = list.filter(m => {
+        const mb = (m.brand || '').trim().toLowerCase();
+        if (targetBrand === 'mfh') return mb.includes('model factory hiro') || mb.includes('mfh');
+        return mb.includes(targetBrand);
+      });
+    }
   }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -1705,7 +1775,7 @@ async function handleFormSubmit(e) {
 
   // Auto-set progress for certain statuses
   if (model.status === 'COMPLETED') model.progress = 100;
-  if (model.status === 'BACKLOG' || model.status === 'IN_TRANSIT' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
+  if (model.status === 'BACKLOG' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
     if (model.progress === 0) model.stage = 'Non Iniziato (Backlog)';
   }
 
@@ -2325,30 +2395,20 @@ function setupEventListeners() {
     renderGrid();
   });
 
-  // Brand filter: menu a tendina apribile al clic
-  const setBrandDropdownOpen = (open) => {
-    const panel  = $('brandDropdownPanel');
-    const toggle = $('brandDropdownToggle');
-    if (!panel || !toggle) return;
-    panel.hidden = !open;
-    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-  };
-  $('brandDropdownToggle')?.addEventListener('click', e => {
-    e.stopPropagation();
-    setBrandDropdownOpen($('brandDropdownPanel').hidden);
-  });
-  document.addEventListener('click', e => {
-    if (!e.target.closest('#brandDropdown')) setBrandDropdownOpen(false);
-  });
-
-  // Brand filter matrix (rocker buttons in alphabetical order)
-  $('brandFilterMatrix')?.addEventListener('click', e => {
-    const btn = e.target.closest('.rocker-btn');
-    if (!btn) return;
-    filterBrand = btn.dataset.brand;
-    updateFilterUI();
+  // Brand filter: campo di digitazione libera
+  $('brandFilterInput')?.addEventListener('input', e => {
+    const val = e.target.value.trim();
+    filterBrand = val ? val : 'ALL';
+    if ($('btnClearBrandFilter')) {
+      $('btnClearBrandFilter').style.display = val ? '' : 'none';
+    }
     renderGrid();
-    setBrandDropdownOpen(false);
+  });
+  $('btnClearBrandFilter')?.addEventListener('click', () => {
+    filterBrand = 'ALL';
+    if ($('brandFilterInput')) $('brandFilterInput').value = '';
+    if ($('btnClearBrandFilter')) $('btnClearBrandFilter').style.display = 'none';
+    renderGrid();
   });
 
   // Search
@@ -2539,127 +2599,114 @@ function setupEventListeners() {
   });
 
   // Cloud Auth Modal & Status Badge
-  $('dbStatusBadge')?.addEventListener('click', openAuthModal);
-  $('btnHeaderUsers')?.addEventListener('click', openAuthModal);
+  $('dbStatusBadge')?.addEventListener('click', () => openAuthModal(false));
+  $('btnHeaderUsers')?.addEventListener('click', () => openAuthModal(false));
   $('btnAuthModalClose')?.addEventListener('click', closeAuthModal);
   $('btnAuthCloseFooter')?.addEventListener('click', closeAuthModal);
   $('authModalBackdrop')?.addEventListener('click', e => {
-    if (e.target === $('authModalBackdrop')) closeAuthModal();
+    if (e.target === $('authModalBackdrop') && isAuthenticatedUser(currentCloudUser)) {
+      closeAuthModal();
+    }
   });
+
+  // Traduzione errori Firebase Auth in italiano
+  function formatAuthError(err) {
+    const code = err && err.code ? err.code : '';
+    switch (code) {
+      case 'auth/email-already-in-use':
+        return 'Questa email è già registrata. Clicca su "🔑 ACCEDI" per entrare nel tuo archivio.';
+      case 'auth/invalid-email':
+        return 'Indirizzo email non valido.';
+      case 'auth/weak-password':
+        return 'La password è troppo corta: inserisci almeno 6 caratteri.';
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'Email o password errati. Se è il tuo primo accesso, clicca su "➕ REGISTRA NUOVO ACCOUNT".';
+      case 'auth/too-many-requests':
+        return 'Troppi tentativi falliti. Attendi qualche minuto e riprova.';
+      case 'auth/operation-not-allowed':
+        return 'Accesso Email/Password non ancora attivo su Firebase Console (Authentication → Sign-in method → Email/Password).';
+      default:
+        return err && err.message ? err.message : 'Errore di autenticazione. Riprova.';
+    }
+  }
 
   // Login con Google
   $('btnAuthGoogle')?.addEventListener('click', async () => {
     if (!firebaseAuth) return;
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
-      const cred = await firebaseAuth.signInWithPopup(provider);
-      if (cred && cred.user) {
-        activeLocalTestUser = { email: cred.user.email, name: cred.user.displayName || cred.user.email.split('@')[0], isAnonymous: false };
-        localStorage.setItem(ACTIVE_TEST_USER_KEY, JSON.stringify(activeLocalTestUser));
-      }
-      showToast('✓ Accesso Google completato! Sincronizzazione Cloud attiva.', 'cyan');
-      updateAuthUI(currentCloudUser);
-      closeAuthModal();
+      await firebaseAuth.signInWithPopup(provider);
+      showToast('✓ Accesso Google completato! Caricamento archivio personale...', 'cyan');
     } catch (err) {
       console.error('Errore login Google:', err);
-      updateAuthUI(currentCloudUser, `Errore accesso Google (${err.code || err.message}). Usa Email/Password qui sopra.`);
+      updateAuthUI(null, `Errore accesso Google: ${formatAuthError(err)}`);
     }
   });
 
-  // Helper per registrare un nuovo utente di test
+  // Registrazione nuovo account con Email e Password (database personale)
   async function handleRegisterUser() {
+    if (!firebaseAuth) {
+      updateAuthUI(null, 'Servizio Firebase Authentication non disponibile.');
+      return;
+    }
     const name  = ($('authNameInput') ? $('authNameInput').value.trim() : '');
     const email = ($('authEmailInput') ? $('authEmailInput').value.trim().toLowerCase() : '');
     const pass  = ($('authPasswordInput') ? $('authPasswordInput').value : '');
 
     if (!email || !email.includes('@')) {
-      updateAuthUI(currentCloudUser, 'Inserisci un indirizzo email valido.');
+      updateAuthUI(null, 'Inserisci un indirizzo email valido.');
       return;
     }
     if (!pass || pass.length < 6) {
-      updateAuthUI(currentCloudUser, 'La password deve contenere almeno 6 caratteri.');
+      updateAuthUI(null, 'La password deve contenere almeno 6 caratteri.');
       return;
     }
 
-    const users = getTestUsersRegistry();
-    if (users.some(u => u.email.toLowerCase() === email)) {
-      updateAuthUI(currentCloudUser, `L'utente ${email} è già registrato! Clicca su "🔑 ACCEDI" o sul tasto "↪ USA" nella lista sotto.`);
-      return;
-    }
+    updateAuthUI(null, 'Creazione account e archivio personale in corso...', true);
 
-    // Tenta anche la registrazione su Firebase Auth se attiva nella console
-    if (firebaseAuth) {
-      try {
-        await firebaseAuth.createUserWithEmailAndPassword(email, pass);
-      } catch (fbErr) {
-        console.info('Nota Firebase Auth register (uso registro test sincronizzato):', fbErr.code);
+    try {
+      const cred = await firebaseAuth.createUserWithEmailAndPassword(email, pass);
+      if (cred && cred.user && name) {
+        try {
+          await cred.user.updateProfile({ displayName: name });
+        } catch {}
       }
+      if ($('authNameInput')) $('authNameInput').value = '';
+      if ($('authEmailInput')) $('authEmailInput').value = '';
+      if ($('authPasswordInput')) $('authPasswordInput').value = '';
+      showToast(`✓ Account creato! Benvenuto ${name || email.split('@')[0]}!`, 'cyan');
+    } catch (err) {
+      console.error('Errore registrazione:', err);
+      updateAuthUI(null, formatAuthError(err));
     }
-
-    const newUser = {
-      email,
-      name: name || email.split('@')[0],
-      password: pass,
-      registeredAt: new Date().toISOString()
-    };
-    users.push(newUser);
-    await saveTestUsersRegistry(users, true);
-
-    activeLocalTestUser = { email: newUser.email, name: newUser.name, isAnonymous: false };
-    localStorage.setItem(ACTIVE_TEST_USER_KEY, JSON.stringify(activeLocalTestUser));
-
-    if ($('authNameInput')) $('authNameInput').value = '';
-    if ($('authEmailInput')) $('authEmailInput').value = '';
-    if ($('authPasswordInput')) $('authPasswordInput').value = '';
-
-    updateAuthUI(currentCloudUser, `Utente #${users.length} (${newUser.email}) registrato e attivato con successo!`, true);
-    showToast(`✓ Utente ${newUser.name} registrato (#${users.length})!`, 'cyan');
   }
 
-  // Helper per accedere con un utente esistente
+  // Accesso con Email e Password
   async function handleLoginUser() {
+    if (!firebaseAuth) {
+      updateAuthUI(null, 'Servizio Firebase Authentication non disponibile.');
+      return;
+    }
     const email = ($('authEmailInput') ? $('authEmailInput').value.trim().toLowerCase() : '');
     const pass  = ($('authPasswordInput') ? $('authPasswordInput').value : '');
 
     if (!email || !pass) {
-      updateAuthUI(currentCloudUser, 'Inserisci Email e Password per accedere.');
+      updateAuthUI(null, 'Inserisci Email e Password per accedere al tuo archivio.');
       return;
     }
 
-    const users = getTestUsersRegistry();
-    const localMatch = users.find(u => u.email.toLowerCase() === email);
+    updateAuthUI(null, 'Verifica credenziali in corso...', true);
 
-    if (localMatch && localMatch.password !== pass) {
-      updateAuthUI(currentCloudUser, 'Password non corretta per questo utente di test.');
-      return;
+    try {
+      await firebaseAuth.signInWithEmailAndPassword(email, pass);
+      if ($('authPasswordInput')) $('authPasswordInput').value = '';
+      showToast('✓ Accesso effettuato! Caricamento archivio personale...', 'cyan');
+    } catch (err) {
+      console.error('Errore login:', err);
+      updateAuthUI(null, formatAuthError(err));
     }
-
-    if (firebaseAuth) {
-      try {
-        await firebaseAuth.signInWithEmailAndPassword(email, pass);
-      } catch (fbErr) {
-        if (!localMatch) {
-          updateAuthUI(currentCloudUser, `Utente ${email} non trovato. Premi "➕ REGISTRA NUOVO UTENTE" per crearlo!`);
-          return;
-        }
-      }
-    } else if (!localMatch) {
-      updateAuthUI(currentCloudUser, `Utente ${email} non trovato. Premi "➕ REGISTRA NUOVO UTENTE" per crearlo!`);
-      return;
-    }
-
-    const userName = localMatch ? localMatch.name : email.split('@')[0];
-    if (!localMatch) {
-      users.push({ email, name: userName, password: pass, registeredAt: new Date().toISOString() });
-      await saveTestUsersRegistry(users, true);
-    }
-
-    activeLocalTestUser = { email, name: userName, isAnonymous: false };
-    localStorage.setItem(ACTIVE_TEST_USER_KEY, JSON.stringify(activeLocalTestUser));
-
-    if ($('authPasswordInput')) $('authPasswordInput').value = '';
-    updateAuthUI(currentCloudUser, `Accesso effettuato come ${userName} (${email})!`, true);
-    showToast(`✓ Benvenuto, ${userName}!`, 'cyan');
   }
 
   $('btnAuthRegisterSubmit')?.addEventListener('click', handleRegisterUser);
@@ -2669,60 +2716,26 @@ function setupEventListeners() {
     handleLoginUser();
   });
 
-  // Azioni rapide sulla lista utenti di test (↪ USA / ✕ Rimuovi)
-  $('testUsersListContainer')?.addEventListener('click', async e => {
-    const loginBtn = e.target.closest('[data-testuser-login]');
-    if (loginBtn) {
-      const targetEmail = loginBtn.dataset.testuserLogin.toLowerCase();
-      const users = getTestUsersRegistry();
-      const u = users.find(item => item.email.toLowerCase() === targetEmail);
-      if (u) {
-        if (firebaseAuth && u.password) {
-          try { await firebaseAuth.signInWithEmailAndPassword(u.email, u.password); } catch {}
-        }
-        activeLocalTestUser = { email: u.email, name: u.name, isAnonymous: false };
-        localStorage.setItem(ACTIVE_TEST_USER_KEY, JSON.stringify(activeLocalTestUser));
-        updateAuthUI(currentCloudUser, `Passato all'utente di test: ${u.name} (${u.email})`, true);
-        showToast(`✓ Utente attivo: ${u.name}`, 'cyan');
-      }
-      return;
-    }
-
-    const delBtn = e.target.closest('[data-testuser-delete]');
-    if (delBtn) {
-      const targetEmail = delBtn.dataset.testuserDelete.toLowerCase();
-      if (!confirm(`Rimuovere l'utente di test "${targetEmail}" dalla lista?`)) return;
-      const users = getTestUsersRegistry().filter(item => item.email.toLowerCase() !== targetEmail);
-      await saveTestUsersRegistry(users, true);
-      if (activeLocalTestUser && activeLocalTestUser.email.toLowerCase() === targetEmail) {
-        activeLocalTestUser = null;
-        localStorage.removeItem(ACTIVE_TEST_USER_KEY);
-      }
-      updateAuthUI(currentCloudUser);
-      showToast('Utente di test rimosso', 'amber');
-    }
-  });
-
-  // Logout Cloud / Utente
+  // Logout Utente
   $('btnAuthLogout')?.addEventListener('click', async () => {
-    activeLocalTestUser = null;
-    localStorage.removeItem(ACTIVE_TEST_USER_KEY);
-    if (firebaseAuth && currentCloudUser && !currentCloudUser.isAnonymous) {
+    if (firebaseAuth) {
       try {
         await firebaseAuth.signOut();
-      } catch {}
+      } catch (err) {
+        console.warn('Errore logout:', err);
+      }
     }
-    showToast('Utente disconnesso', 'amber');
-    updateAuthUI(currentCloudUser);
+    deactivateUserSession('Disconnesso. Accedi con Email e Password per riaprire il tuo archivio.');
+    showToast('Account disconnesso', 'amber');
   });
 
-  // Escape key to close modals
+  // Escape key to close modals (tranne authModal se non autenticato)
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if ($('modelModalBackdrop').style.display !== 'none') closeModal('modelModalBackdrop');
       else if ($('boxartModalBackdrop').style.display !== 'none') closeBoxartModal();
       else if ($('detailModalBackdrop').style.display !== 'none') closeModal('detailModalBackdrop');
-      else if ($('authModalBackdrop') && $('authModalBackdrop').style.display !== 'none') closeAuthModal();
+      else if ($('authModalBackdrop') && $('authModalBackdrop').style.display !== 'none' && isAuthenticatedUser(currentCloudUser)) closeAuthModal();
     }
   });
 }
@@ -2737,46 +2750,18 @@ function updateFilterUI() {
   document.querySelectorAll('#categoryFilterMatrix .rocker-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.category === filterCategory);
   });
-  document.querySelectorAll('#brandFilterMatrix .rocker-btn').forEach(btn => {
-    btn.classList.toggle('active', (btn.dataset.brand || '').toLowerCase() === filterBrand.toLowerCase());
-  });
-  const brandLabel = $('brandDropdownCurrent');
-  if (brandLabel) brandLabel.textContent = filterBrand === 'ALL' ? 'TUTTE' : filterBrand.toUpperCase();
-}
-
-function ensureStatusButtonsPresent() {
-  const statusMatrix = $('statusFilterMatrix');
-  if (statusMatrix && !statusMatrix.querySelector('[data-status="IN_TRANSIT"]')) {
-    const backlogBtn = statusMatrix.querySelector('[data-status="BACKLOG"]');
-    const btn = document.createElement('button');
-    btn.className = 'rocker-btn';
-    btn.dataset.status = 'IN_TRANSIT';
-    btn.innerHTML = '<span class="led-jewel cyan-led"></span><span class="rocker-text">🚚 ACQUISTATO IN ARRIVO</span>';
-    if (backlogBtn && backlogBtn.nextSibling) {
-      statusMatrix.insertBefore(btn, backlogBtn.nextSibling);
-    } else {
-      statusMatrix.appendChild(btn);
-    }
+  const brandInput = $('brandFilterInput');
+  const clearBtn = $('btnClearBrandFilter');
+  if (brandInput) {
+    brandInput.value = filterBrand === 'ALL' ? '' : filterBrand;
   }
-
-  const formStatusDeck = $('formStatusDeck');
-  if (formStatusDeck && !formStatusDeck.querySelector('input[value="IN_TRANSIT"]')) {
-    const backlogInput = formStatusDeck.querySelector('input[value="BACKLOG"]');
-    const backlogLabel = backlogInput ? backlogInput.closest('label') : null;
-    const label = document.createElement('label');
-    label.className = 'status-radio-pill';
-    label.innerHTML = '<input type="radio" name="formStatus" value="IN_TRANSIT"><span class="pill-body">🚚 ACQUISTATO IN ARRIVO</span>';
-    if (backlogLabel && backlogLabel.nextSibling) {
-      formStatusDeck.insertBefore(label, backlogLabel.nextSibling);
-    } else {
-      formStatusDeck.appendChild(label);
-    }
+  if (clearBtn) {
+    clearBtn.style.display = (filterBrand && filterBrand !== 'ALL') ? '' : 'none';
   }
 }
 
 // ─── BOOT SEQUENCE ────────────────────────────────────────────────────────────
 async function bootSystem() {
-  ensureStatusButtonsPresent();
   // Boot clock
   setInterval(updateClock, 1000);
   updateClock();
@@ -2784,90 +2769,16 @@ async function bootSystem() {
   // Generate SVG gauge ticks
   generateGaugeTicks();
 
-  try {
-    db       = await openDatabase();
-    allModels = await getAllModels();
-    $('dbStatusBadge').textContent = 'DB: ONLINE';
-    $('storageTypeDisplay').textContent = 'INDEXED_DB';
-  } catch (err) {
-    console.warn('IndexedDB non disponibile, uso localStorage:', err);
-    db = null;
-    // Fallback: localStorage (minimal)
-    try {
-      const raw = localStorage.getItem('outrunElanModels');
-      allModels = raw ? JSON.parse(raw) : [];
-    } catch { allModels = []; }
-    $('dbStatusBadge').textContent      = 'DB: localStorage';
-    $('storageTypeDisplay').textContent = 'LOCAL_STORAGE';
-  }
+  // Configura subito listener UI e blocca l'app in attesa di autenticazione obbligatoria
+  setupEventListeners();
+  updateFilterUI();
+  setAppLocked(true);
+  openAuthModal(true);
 
-  // Seed official collection if completely empty
-  if (allModels.length === 0 && db) {
-    for (const m of TAMIYA_1_20_MODELS) {
-      await saveModel({ ...m, addedAt: new Date().toISOString() });
-    }
-    allModels = await getAllModels();
-  }
-
-  // Auto-clean unverified non-box photo references from stored models
-  let updatedAny = false;
-  for (const m of allModels) {
-    if (m.photo && (m.photo.includes('rcjaz.com') || m.photo.includes('m_tam') || m.photo.includes('boxart/TAM20036') || m.photo.includes('BOX_20036'))) {
-      m.photo = null;
-      if (db) await saveModel(m);
-      updatedAny = true;
-    }
-  }
-  if (updatedAny && db) {
-    allModels = await getAllModels();
-  }
-
-  // Auto-popolamento collezione Tamiya 1/24 Sport Car se non ancora presente
-  const hasTamiya124 = allModels.some(m => m.category === 'Sport Car' || m.category === '1/24 Sports Car Series' || (m.kitCode && m.kitCode.startsWith('Tamiya 24')));
-  if (!hasTamiya124 && typeof TAMIYA_1_24_MODELS !== 'undefined' && TAMIYA_1_24_MODELS.length > 0) {
-    console.log('🚗 Inizializzazione automatica catalogo Tamiya 1/24 Sport Car...');
-    await importTamiya124Data(false);
-  }
-
-  // Migrazione automatica stato di default (Wishlist), scala 1/20 e categorie (Sport Car, Formula 1, Rally)
-  const shouldConvertBacklogLocal = !localStorage.getItem(WISHLIST_MIGRATION_KEY);
-  let taxonomyMigrated = false;
-  for (const m of allModels) {
-    if (normalizeModelTaxonomy(m, shouldConvertBacklogLocal)) {
-      taxonomyMigrated = true;
-    }
-  }
-  if (taxonomyMigrated) {
-    if (db) {
-      await new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        allModels.forEach(m => store.put(m));
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
-      });
-    } else {
-      try { localStorage.setItem('outrunElanModels', JSON.stringify(allModels)); } catch {}
-    }
-  }
-
+  // Avvia Firebase Auth & Firestore (sblocca automaticamente se l'utente è già autenticato)
   await initFirestore();
 
-  renderBrandFilterButtons();
-  setupEventListeners();
-  updateAuthUI(currentCloudUser);
-  updateFilterUI();
-  renderGrid();
-  refreshStats();
-
-  // Boot animation: flash status badge
-  const badge = $('dbStatusBadge');
-  if (badge) {
-    badge.style.animation = 'ledFlicker 0.5s 3';
-  }
-
-  console.log('%cSTATIC MODEL KIT INVENTORY -- BOOT COMPLETE', 'color:#ff007f;font-family:monospace;font-size:14px;');
-  console.log(`%c📊 Fleet: ${allModels.length} models loaded`, 'color:#00f3ff;font-family:monospace;');
+  console.log('%cSTATIC MODEL KIT INVENTORY -- BOOT COMPLETE (AUTH REQUIRED)', 'color:#ff007f;font-family:monospace;font-size:14px;');
 }
 
 // ─── ENTRYPOINT ───────────────────────────────────────────────────────────────

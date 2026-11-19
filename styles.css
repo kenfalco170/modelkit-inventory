@@ -267,45 +267,32 @@ body {
   padding-top: 4px;
 }
 
-/* ─── MENU A TENDINA MARCA KIT ─────────────────────────────────────────── */
-.brand-dropdown { position: relative; width: 100%; }
-.brand-dropdown-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 360px;
-  padding: 8px 14px;
-  background: #ffffff;
-  border: 1px solid #c0d0e4;
-  border-radius: 6px;
-  font-family: var(--font-mono);
-  font-size: 12px;
+/* ─── CAMPO DIGITAZIONE MARCA KIT & LOCK AUTENTICAZIONE ────────────────── */
+.btn-clear-brand {
+  background: transparent;
+  border: none;
+  color: #607898;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #0a225c;
   cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
 }
-.brand-dropdown-toggle:hover,
-.brand-dropdown-toggle[aria-expanded="true"] {
-  border-color: #0055ff;
-  box-shadow: 0 0 0 3px rgba(0,85,255,0.12);
+.btn-clear-brand:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
 }
-.brand-dropdown-current { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.brand-dropdown-arrow { font-size: 10px; color: #0055ff; transition: transform 0.2s; }
-.brand-dropdown-toggle[aria-expanded="true"] .brand-dropdown-arrow { transform: rotate(180deg); }
-.brand-dropdown-panel {
-  margin-top: 8px;
-  padding: 10px;
-  background: #f7faff;
-  border: 1px solid #d4e2f2;
-  border-radius: 6px;
-  max-height: 260px;
-  overflow-y: auto;
+body.app-auth-locked .cockpit-chassis {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.25;
 }
-.brand-dropdown-panel[hidden] { display: none; }
+#authModalBackdrop.auth-mandatory-lock {
+  background: rgba(8, 20, 50, 0.88) !important;
+  backdrop-filter: blur(6px);
+}
 
 /* ─── CASSETTE DECK UNIT ────────────────────────────────────────────────── */
 .cassette-deck-unit {
@@ -947,7 +934,6 @@ body {
 .status-COMPLETED { border-color: #0055ff; color: #0055ff; background: #eaf2ff; }
 .status-WIP       { border-color: #d97706; color: #b45309; background: #fef3c7; }
 .status-BACKLOG   { border-color: #004ecc; color: #004ecc; background: #e8f1fd; }
-.status-IN_TRANSIT     { border-color: #0d9488; color: #0f766e; background: #ccfbf1; }
 .status-WISHLIST       { border-color: #ea580c; color: #c2410c; background: #ffedd5; }
 .status-NOT_INTERESTED { border-color: #dc2626; color: #b91c1c; background: #fee2e2; }
 .status-OTHER          { border-color: #64748b; color: #475569; background: #f1f5f9; }
