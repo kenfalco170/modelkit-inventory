@@ -1073,24 +1073,30 @@ async function seedNewUserPersonalArchive() {
     localStorage.setItem(`${TAMIYA_120_RESET_KEY}_${activeUserId}`, '1');
     localStorage.setItem(`${WISHLIST_MIGRATION_KEY}_${activeUserId}`, '1');
 
-    const userCol = getUserModelsCollection();
-    if (userCol && isCloudSyncActive) {
-      const BATCH_SIZE = 400;
-      for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
-        const chunk = allModels.slice(i, i + BATCH_SIZE);
-        const batch = firestoreDb.batch();
-        for (const m of chunk) {
-          const docId = String(m.id);
-          batch.set(userCol.doc(docId), { ...m, id: m.id });
-        }
-        await batch.commit();
-      }
-    }
-
+    // Mostra subito i modelli a schermo (anche se il cloud dovesse essere lento o offline)
     renderBrandFilterButtons();
     renderGrid();
     refreshStats();
-    showToast(`✓ Archivio personale creato! ${allModels.length} kit (tutti i Tamiya 1/20 in Wishlist).`, 'cyan');
+    showToast(`✓ Archivio personale creato! ${allModels.length} kit (60 Tamiya 1/20 + 1/24 in Wishlist).`, 'cyan');
+
+    const userCol = getUserModelsCollection();
+    if (userCol && isCloudSyncActive) {
+      try {
+        const BATCH_SIZE = 400;
+        for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
+          const chunk = allModels.slice(i, i + BATCH_SIZE);
+          const batch = firestoreDb.batch();
+          for (const m of chunk) {
+            const docId = String(m.id);
+            batch.set(userCol.doc(docId), { ...m, id: m.id });
+          }
+          await batch.commit();
+        }
+        console.log('☁️ Archivio iniziale sincronizzato su Firestore!');
+      } catch (cloudErr) {
+        console.warn('Upload cloud archivio iniziale non riuscito (i dati restano salvati in locale):', cloudErr);
+      }
+    }
   } catch (err) {
     console.error('Errore creazione archivio iniziale utente:', err);
   } finally {
@@ -1208,23 +1214,30 @@ function startFirestoreListener() {
   }
 
   firestoreUnsubscribe = userCol.onSnapshot(async (snapshot) => {
+    // Non sovrascrivere mentre stiamo creando il catalogo iniziale del nuovo utente
+    if (isSeedingNewUser) return;
+
     // Se l'archivio cloud personale è vuoto: crea il catalogo pulito (tutti i 1/20 in Wishlist) oppure carica eventuali dati locali
     if (snapshot.empty) {
       if (allModels.length === 0) {
         await seedNewUserPersonalArchive();
       } else {
         console.log('☁️ Upload archivio locale verso il database personale Cloud...');
-        const BATCH_SIZE = 400;
-        for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
-          const chunk = allModels.slice(i, i + BATCH_SIZE);
-          const batch = firestoreDb.batch();
-          for (const m of chunk) {
-            const docId = String(m.id || Date.now());
-            batch.set(userCol.doc(docId), { ...m, id: m.id });
+        try {
+          const BATCH_SIZE = 400;
+          for (let i = 0; i < allModels.length; i += BATCH_SIZE) {
+            const chunk = allModels.slice(i, i + BATCH_SIZE);
+            const batch = firestoreDb.batch();
+            for (const m of chunk) {
+              const docId = String(m.id || Date.now());
+              batch.set(userCol.doc(docId), { ...m, id: m.id });
+            }
+            await batch.commit();
           }
-          await batch.commit();
+          showToast('☁️ Archivio personale sincronizzato nel Cloud!', 'cyan');
+        } catch (uploadErr) {
+          console.warn('Errore upload archivio locale su Firestore:', uploadErr);
         }
-        showToast('☁️ Archivio personale sincronizzato nel Cloud!', 'cyan');
       }
       return;
     }
@@ -1239,10 +1252,35 @@ function startFirestoreListener() {
       cloudModels.push(data);
     });
 
+    // Se per qualsiasi motivo mancassero i 60 Tamiya 1/20, li ripristiniamo puliti in Wishlist
+    let needCloudUpdate = false;
+    const hasTamiya120 = cloudModels.some(m => isTamiya120Model(m));
+    if (!hasTamiya120 && TAMIYA_1_20_MODELS.length > 0) {
+      const nowIso = new Date().toISOString();
+      let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+      TAMIYA_1_20_MODELS.forEach(m => {
+        maxId++;
+        cloudModels.push({
+          ...m,
+          id: maxId,
+          status: 'WISHLIST',
+          progress: 0,
+          stage: 'Non Iniziato (Backlog)',
+          location: '',
+          purchasePrice: 0,
+          estimatedValue: 0,
+          aftermarket: '',
+          photo: null,
+          scale: '1/20',
+          addedAt: nowIso
+        });
+      });
+      needCloudUpdate = true;
+    }
+
     allModels = cloudModels;
 
     // Reset una tantum di eventuali personalizzazioni sui Tamiya 1/20 (tutti in WISHLIST)
-    let needCloudUpdate = false;
     const resetFlagKey = `${TAMIYA_120_RESET_KEY}_${activeUserId}`;
     if (!localStorage.getItem(resetFlagKey)) {
       if (resetTamiya120ModelsInList(cloudModels)) {
@@ -1270,7 +1308,7 @@ function startFirestoreListener() {
             }
             await batch.commit();
           }
-          console.log('☁️ Reset Tamiya 1/20 in Wishlist sincronizzato sul database personale!');
+          console.log('☁️ Tamiya 1/20 ripristinati in Wishlist e sincronizzati sul database personale!');
         } catch (e) {
           console.warn('Errore sync batch aggiornamento:', e);
         }
@@ -1291,12 +1329,16 @@ function startFirestoreListener() {
     renderGrid();
     refreshStats();
     isApplyingCloudSnapshot = false;
-  }, (err) => {
+  }, async (err) => {
     console.warn('Firestore snapshot error:', err);
     if (err && err.code === 'permission-denied') {
       isCloudSyncActive = false;
-      updateAuthUI(currentCloudUser, 'Permessi Firestore mancanti per users/{uid}/models: aggiorna le Regole di Sicurezza in Firebase Console.');
-      showToast('⚠️ Aggiorna le regole Firestore per users/{uid}/models', 'amber');
+      updateAuthUI(currentCloudUser, 'Permessi Firestore mancanti per users/{uid}/models: aggiorna le Regole di Sicurezza in Firebase Console (modalità locale attiva).');
+      showToast('⚠️ Regole Firestore da aggiornare — archivio locale caricato!', 'amber');
+    }
+    // Se il cloud non è raggiungibile o bloccato e l'archivio locale è vuoto, popola comunque il catalogo locale!
+    if (allModels.length === 0 && activeUserId) {
+      await seedNewUserPersonalArchive();
     }
   });
 }
@@ -2395,14 +2437,26 @@ function setupEventListeners() {
     renderGrid();
   });
 
-  // Brand filter: campo di digitazione libera
-  $('brandFilterInput')?.addEventListener('input', e => {
-    const val = e.target.value.trim();
+  // Brand filter: campo di digitazione libera (filtra mentre scrivi o premendo Invio)
+  const applyBrandFilter = (scrollToResults = false) => {
+    const val = ($('brandFilterInput') ? $('brandFilterInput').value.trim() : '');
     filterBrand = val ? val : 'ALL';
     if ($('btnClearBrandFilter')) {
       $('btnClearBrandFilter').style.display = val ? '' : 'none';
     }
     renderGrid();
+    if (scrollToResults && $('modelsGrid')) {
+      $('modelsGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  $('brandFilterInput')?.addEventListener('input', () => applyBrandFilter(false));
+  $('brandFilterInput')?.addEventListener('change', () => applyBrandFilter(false));
+  $('brandFilterInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      applyBrandFilter(true);
+      e.target.blur();
+    }
   });
   $('btnClearBrandFilter')?.addEventListener('click', () => {
     filterBrand = 'ALL';
