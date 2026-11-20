@@ -1059,6 +1059,7 @@ let firestoreUnsubscribe = null;
 let isCloudSyncActive = false;
 let isApplyingCloudSnapshot = false;
 let isSeedingNewUser = false;
+let isSyncing124Batch = false;
 
 function isAuthenticatedUser(user) {
   return Boolean(user && !user.isAnonymous && user.uid && user.email);
@@ -1390,6 +1391,70 @@ function startFirestoreListener() {
       needCloudUpdate = true;
     }
 
+    // Popolamento automatico dei 370 kit Tamiya 1/24 Sports Car Series (24001-24370) anche per account già esistenti
+    if (
+      !isSyncing124Batch &&
+      typeof TAMIYA_1_24_MODELS !== 'undefined' &&
+      Array.isArray(TAMIYA_1_24_MODELS) &&
+      TAMIYA_1_24_MODELS.length > 0
+    ) {
+      const existing124Nums = new Set();
+      cloudModels.forEach(m => {
+        const match = String(m.kitCode || '').match(/\b(24\d{3})\b/);
+        if (match) existing124Nums.add(match[1]);
+      });
+      if (existing124Nums.size < 50) {
+        isSyncing124Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const added124Models = [];
+        for (const m of TAMIYA_1_24_MODELS) {
+          const match = String(m.kitCode || '').match(/\b(24\d{3})\b/);
+          const num = match ? match[1] : null;
+          if (num && existing124Nums.has(num)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:24',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          added124Models.push(newItem);
+          if (num) existing124Nums.add(num);
+        }
+        if (added124Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < added124Models.length; i += BATCH_SIZE) {
+                const chunk = added124Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`🚗 Aggiunti ${added124Models.length} kit Tamiya 1/24 Sports Car Series in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Tamiya 1/24:', e);
+              isSyncing124Batch = false;
+            }
+          })();
+        } else {
+          isSyncing124Batch = false;
+        }
+      }
+    }
+
     // Rimozione una tantum del duplicato KIT_0047 (id 47 / Tamiya 20047)
     const remove47FlagKey = `modelkit_remove_kit_0047_v1_${activeUserId}`;
     if (!localStorage.getItem(remove47FlagKey)) {
@@ -1537,7 +1602,7 @@ function getFilteredSorted() {
         return m.scale === '1/20' || m.scale === '1:20' || m.scale === '1/20 Grand Prix' || m.scale === 'Formula 1';
       }
       if (filterScale === '1:24') {
-        return m.scale === '1:24' || m.scale === '1/24' || m.category === 'Sport Car' || m.category === '1/24 Sports Car Series';
+        return m.scale === '1:24' || m.scale === '1/24';
       }
       if (filterScale === '1:12') return m.scale === '1:12' || m.scale === '1/12';
       if (filterScale === '1:18') return m.scale === '1:18' || m.scale === '1/18';
@@ -1723,6 +1788,7 @@ function renderModelCard(model) {
       <img class="card-photo-img boxart-img" 
            src="${displayPhoto}" 
            alt="${escHtml(model.name)}" 
+           loading="lazy"
            data-alt-src="${altBoxartPath}"
            onerror="if(this.dataset.altSrc && this.src.indexOf(this.dataset.altSrc)===-1){var a=this.dataset.altSrc;this.dataset.altSrc='';this.src=a;}else{this.onerror=null;this.src='${svgFallback}';}">
       ${isBoxart ? '<span class="boxart-stamp-pill">📦 SCATOLA KIT</span>' : ''}
