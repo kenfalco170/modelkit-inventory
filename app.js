@@ -2261,7 +2261,13 @@ const BOXART_LOCAL = {
   'Tamiya 24088': 'boxart/BOX_24088.jpg',
   'Tamiya 24196': 'boxart/BOX_24196.jpg',
   'Tamiya 24266': 'boxart/BOX_24266.jpg',
-  'Tamiya 24299': 'boxart/BOX_24299.jpg'
+  'Tamiya 24299': 'boxart/BOX_24299.jpg',
+  // Altri marchi / kit base
+  'HAS JT102': 'boxart/BOX_HAS_JT102.jpg',
+  'FUJ 03658': 'boxart/BOX_FUJ_03658.jpg',
+  'REV 07031': 'boxart/BOX_REV_07031.jpg',
+  'TAM 35138': 'boxart/BOX_TAM_35138.jpg',
+  'BAN 0145':  'boxart/BOX_BAN_0145.jpg'
 };
 
 // Generatore Box Art Ufficiale Tamiya SVG in alta definizione
@@ -2371,6 +2377,11 @@ function getBoxartPath(model) {
   if (lower.includes('lotus 25')) return 'boxart/BOX_20044.jpg';
   if (lower.includes('m23') && !lower.includes('photo-etched')) return 'boxart/BOX_20002.jpg';
   if (lower.includes('p34') && !lower.includes('monaco') && !lower.includes('japan')) return 'boxart/BOX_20001.jpg';
+  if (lower.includes('spitfire') && lower.includes('ixc')) return 'boxart/BOX_HAS_JT102.jpg';
+  if (lower.includes('lotus elan')) return 'boxart/BOX_FUJ_03658.jpg';
+  if (lower.includes('911 rsr') || lower.includes('934 rsr')) return 'boxart/BOX_REV_07031.jpg';
+  if (lower.includes('t-34/85') || lower.includes('35138')) return 'boxart/BOX_TAM_35138.jpg';
+  if (lower.includes('rx-78-2') && lower.includes('gundam')) return 'boxart/BOX_BAN_0145.jpg';
 
   return null;
 }
