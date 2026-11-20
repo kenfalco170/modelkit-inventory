@@ -1061,6 +1061,7 @@ let isApplyingCloudSnapshot = false;
 let isSeedingNewUser = false;
 let isSyncing124Batch = false;
 let isSyncing148Batch = false;
+let isSyncing112Batch = false;
 
 function isAuthenticatedUser(user) {
   return Boolean(user && !user.isAnonymous && user.uid && user.email);
@@ -1169,6 +1170,9 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof TAMIYA_1_48_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_48_MODELS)
         ? TAMIYA_1_48_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof TAMIYA_1_12_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_12_MODELS)
+        ? TAMIYA_1_12_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -1515,6 +1519,66 @@ function startFirestoreListener() {
           })();
         } else {
           isSyncing148Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Tamiya 1/12 Big Scale Auto (12001-12057) + Motorcycle Series (14001-14144)
+    if (!isSyncing112Batch && typeof TAMIYA_1_12_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_12_MODELS) && TAMIYA_1_12_MODELS.length > 0 && cloudModels.length > 0) {
+      const existing112Nums = new Set();
+      cloudModels.forEach(m => {
+        const match = String(m.kitCode || '').match(/\b((?:12|14)\d{3})\b/);
+        if (match) existing112Nums.add(match[1]);
+      });
+      if (existing112Nums.size < 50) {
+        isSyncing112Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const added112Models = [];
+        for (const m of TAMIYA_1_12_MODELS) {
+          const match = String(m.kitCode || '').match(/\b((?:12|14)\d{3})\b/);
+          const num = match ? match[1] : null;
+          if (num && existing112Nums.has(num)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:12',
+            category: m.category || 'Moto',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          added112Models.push(newItem);
+          if (num) existing112Nums.add(num);
+        }
+        if (added112Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < added112Models.length; i += BATCH_SIZE) {
+                const chunk = added112Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`🏎️🏍️ Aggiunti ${added112Models.length} kit Tamiya 1/12 (Auto & Moto) in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Tamiya 1/12:', e);
+              isSyncing112Batch = false;
+            }
+          })();
+        } else {
+          isSyncing112Batch = false;
         }
       }
     }
@@ -2337,13 +2401,15 @@ function getBoxartPath(model) {
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
   const fullText = (kitCode + ' ' + (model.name || '')).toUpperCase();
-  const matchNum = fullText.match(/\b(200\d{2}|24\d{3}|61\d{3})\b/);
+  const matchNum = fullText.match(/\b(200\d{2}|24\d{3}|61\d{3}|12\d{3}|14\d{3})\b/);
   if (matchNum) {
     const key = 'Tamiya ' + matchNum[1];
     if (BOXART_LOCAL[key]) return BOXART_LOCAL[key];
     const num = parseInt(matchNum[1], 10);
     if (num >= 24001 && num <= 24370) return `boxart/BOX_${matchNum[1]}.jpg`;
     if (num >= 61012 && num <= 61129) return `boxart/BOX_${matchNum[1]}.jpg`;
+    if (num >= 12001 && num <= 12057) return `boxart/BOX_${matchNum[1]}.jpg`;
+    if (num >= 14001 && num <= 14144) return `boxart/BOX_${matchNum[1]}.jpg`;
   }
 
   // Corrispondenze accurate per modello per le sole scatole verificate (senza confondere ristampe/versioni diverse)
