@@ -203,6 +203,10 @@
                 <span class="led-jewel blue-led"></span>
                 <span class="rocker-text">📦 IN POSSESSO</span>
               </button>
+              <button class="rocker-btn" data-status="IN_TRANSIT">
+                <span class="led-jewel cyan-led"></span>
+                <span class="rocker-text">🚚 ACQUISTATO IN ARRIVO</span>
+              </button>
               <button class="rocker-btn" data-status="WIP">
                 <span class="led-jewel amber-led"></span>
                 <span class="rocker-text">🔧 IN COSTRUZIONE</span>
@@ -551,6 +555,10 @@
                 <label class="status-radio-pill">
                   <input type="radio" name="formStatus" value="BACKLOG">
                   <span class="pill-body">📦 IN POSSESSO (Da Costruire)</span>
+                </label>
+                <label class="status-radio-pill">
+                  <input type="radio" name="formStatus" value="IN_TRANSIT">
+                  <span class="pill-body">🚚 ACQUISTATO IN ARRIVO</span>
                 </label>
                 <label class="status-radio-pill">
                   <input type="radio" name="formStatus" value="WIP">
@@ -930,7 +938,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="tamiya124.js?v=2"></script>
-  <script src="app.js?v=19"></script>
+  <script src="app.js?v=20"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

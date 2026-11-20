@@ -15,6 +15,7 @@ const STATUS_LABELS = {
   COMPLETED:      '🏆 Costruito',
   WIP:            '🔧 In Costruzione',
   BACKLOG:        '📦 In Possesso (Da Costruire)',
+  IN_TRANSIT:     '🚚 Acquistato in Arrivo',
   WISHLIST:       '🔍 Mancante (Wishlist)',
   NOT_INTERESTED: '🚫 Mancante (Non Interessato)',
   OTHER:          '📌 Altro'
@@ -25,6 +26,7 @@ const STATUS_COLORS = {
   COMPLETED:      'var(--neon-magenta)',
   WIP:            'var(--neon-amber)',
   BACKLOG:        '#4488ff',
+  IN_TRANSIT:     '#0d9488',
   WISHLIST:       'var(--neon-orange)',
   NOT_INTERESTED: '#dc2626',
   OTHER:          '#64748b'
@@ -1571,19 +1573,28 @@ function renderScalePills() {
 }
 
 // ─── MODEL CARD RENDERER ────────────────────────────────────────────────────
+function getEffectivePhotoInfo(model) {
+  const boxartPath = getBoxartPath(model);
+  const altBoxartPath = boxartPath ? boxartPath.replace('boxart/BOX_', 'boxart/TAM') : '';
+  const svgFallback = generateBoxartSvg(model);
+  const rawPhoto = (model.photo || '').trim();
+  const isCustomPhoto = rawPhoto && !rawPhoto.startsWith('data:image/svg+xml') && !rawPhoto.startsWith('boxart/');
+  const displayPhoto = isCustomPhoto ? rawPhoto : (boxartPath || svgFallback);
+  const isBoxart = !isCustomPhoto;
+  return { displayPhoto, boxartPath, altBoxartPath, svgFallback, isBoxart };
+}
+
 function renderModelCard(model) {
   const progress = model.progress || 0;
-  const boxartPath = getBoxartPath(model);
-  const svgFallback = generateBoxartSvg(model);
-  const displayPhoto = model.photo || boxartPath || svgFallback;
-  const isBoxart = !model.photo && (boxartPath || svgFallback);
+  const { displayPhoto, altBoxartPath, svgFallback, isBoxart } = getEffectivePhotoInfo(model);
 
   const photoHtml = `
     <div class="boxart-card-container">
       <img class="card-photo-img boxart-img" 
            src="${displayPhoto}" 
            alt="${escHtml(model.name)}" 
-           onerror="this.onerror=null;this.src='${svgFallback}';">
+           data-alt-src="${altBoxartPath}"
+           onerror="if(this.dataset.altSrc && this.src.indexOf(this.dataset.altSrc)===-1){var a=this.dataset.altSrc;this.dataset.altSrc='';this.src=a;}else{this.onerror=null;this.src='${svgFallback}';}">
       ${isBoxart ? '<span class="boxart-stamp-pill">📦 SCATOLA KIT</span>' : ''}
     </div>`;
 
@@ -1704,11 +1715,16 @@ function openEditModelModal(model) {
   });
 
   // Mostra la foto del modello presente sulla lista
-  const editBoxartPath = getBoxartPath(model);
-  const editSvgFallback = generateBoxartSvg(model);
-  const editDisplayPhoto = model.photo || editBoxartPath || editSvgFallback;
+  const { displayPhoto: editDisplayPhoto, altBoxartPath: editAltPath, svgFallback: editSvgFallback } = getEffectivePhotoInfo(model);
   $('formPhotoPreview').src = editDisplayPhoto;
-  $('formPhotoPreview').onerror = function() { this.onerror = null; this.src = editSvgFallback; };
+  $('formPhotoPreview').onerror = function() {
+    if (editAltPath && this.src.indexOf(editAltPath) === -1) {
+      this.src = editAltPath;
+    } else {
+      this.onerror = null;
+      this.src = editSvgFallback;
+    }
+  };
   $('formPhotoPreview').style.display = 'block';
 
   $('modalWindowTitle').textContent = 'MODIFICA MODELLINO // ' + (model.name || '').toUpperCase();
@@ -1726,14 +1742,11 @@ function openDetailModal(model) {
   $('detailHeaderTitle').textContent = `${model.name || 'SCHEDA DETTAGLIO'}${model.kitCode ? ` — ${model.kitCode}` : ''}`;
   const c = $('detailContentContainer');
 
-  const boxartPath = getBoxartPath(model);
-  const svgFallback = generateBoxartSvg(model);
-  const displayPhoto = model.photo || boxartPath || svgFallback;
-  const isBoxart = !model.photo && (boxartPath || svgFallback);
+  const { displayPhoto, altBoxartPath, svgFallback, isBoxart } = getEffectivePhotoInfo(model);
 
   const photoSection = `
     <div class="detail-photo-banner boxart-detail-banner">
-      <img src="${displayPhoto}" alt="${escHtml(model.name)}" onerror="this.onerror=null;this.src='${svgFallback}'">
+      <img src="${displayPhoto}" alt="${escHtml(model.name)}" data-alt-src="${altBoxartPath}" onerror="if(this.dataset.altSrc && this.src.indexOf(this.dataset.altSrc)===-1){var a=this.dataset.altSrc;this.dataset.altSrc='';this.src=a;}else{this.onerror=null;this.src='${svgFallback}';}">
       ${isBoxart ? '<span class="boxart-stamp-pill detail-stamp">📦 CONFEZIONE ORIGINALE // KIT DA MONTARE</span>' : ''}
     </div>`;
 
@@ -1817,7 +1830,7 @@ async function handleFormSubmit(e) {
 
   // Auto-set progress for certain statuses
   if (model.status === 'COMPLETED') model.progress = 100;
-  if (model.status === 'BACKLOG' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
+  if (model.status === 'BACKLOG' || model.status === 'IN_TRANSIT' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
     if (model.progress === 0) model.stage = 'Non Iniziato (Backlog)';
   }
 
@@ -1911,53 +1924,53 @@ async function importJSON(file) {
 // Mappa codice kit -> file foto della scatola originale certificata (cartella ./boxart/)
 // Contiene SOLO scatole con logo Tamiya e grafica autentica di confezione integra da montare
 const BOXART_LOCAL = {
-  'Tamiya 20001': 'boxart/TAM20001.jpg',
-  'Tamiya 20002': 'boxart/TAM20002.jpg',
-  'Tamiya 20003': 'boxart/TAM20003.jpg',
-  'Tamiya 20004': 'boxart/TAM20004.jpg',
-  'Tamiya 20005': 'boxart/TAM20005.jpg',
-  'Tamiya 20006': 'boxart/TAM20006.jpg',
-  'Tamiya 20007': 'boxart/TAM20007.jpg',
-  'Tamiya 20008': 'boxart/TAM20008.jpg',
-  'Tamiya 20009': 'boxart/TAM20009.jpg',
-  'Tamiya 20010': 'boxart/TAM20010.jpg',
-  'Tamiya 20011': 'boxart/TAM20011.jpg',
-  'Tamiya 20012': 'boxart/TAM20012.jpg',
-  'Tamiya 20013': 'boxart/TAM20013.jpg',
-  'Tamiya 20014': 'boxart/TAM20014.jpg',
-  'Tamiya 20018': 'boxart/TAM20018.jpg',
-  'Tamiya 20019': 'boxart/TAM20019.jpg',
-  'Tamiya 20020': 'boxart/TAM20020.jpg',
-  'Tamiya 20021': 'boxart/TAM20021.jpg',
-  'Tamiya 20022': 'boxart/TAM20022.jpg',
-  'Tamiya 20023': 'boxart/TAM20023.jpg',
-  'Tamiya 20025': 'boxart/TAM20025.jpg',
-  'Tamiya 20026': 'boxart/TAM20026.jpg',
-  'Tamiya 20028': 'boxart/TAM20028.jpg',
-  'Tamiya 20029': 'boxart/TAM20029.jpg',
-  'Tamiya 20030': 'boxart/TAM20030.jpg',
-  'Tamiya 20032': 'boxart/TAM20032.jpg',
-  'Tamiya 20033': 'boxart/TAM20033.jpg',
-  'Tamiya 20035': 'boxart/TAM20035.jpg',
-  'Tamiya 20036': 'boxart/TAM20036.jpg', // Benetton Ford B192 (1992) scatola originale KingKit con logo!
-  'Tamiya 20038': 'boxart/TAM20038.jpg',
-  'Tamiya 20039': 'boxart/TAM20039.jpg',
-  'Tamiya 20043': 'boxart/TAM20043.jpg',
-  'Tamiya 20044': 'boxart/TAM20044.jpg',
-  'Tamiya 20045': 'boxart/TAM20045.jpg',
-  'Tamiya 20046': 'boxart/TAM20046.jpg',
-  'Tamiya 20048': 'boxart/TAM20048.jpg',
-  'Tamiya 20049': 'boxart/TAM20049.jpg',
-  'Tamiya 20052': 'boxart/TAM20052.jpg',
-  'Tamiya 20069': 'boxart/TAM20069.jpg',
-  'Tamiya 20070': 'boxart/TAM20070.jpg',
-  'Tamiya 20071': 'boxart/TAM20071.jpg',
-  'Tamiya 20072': 'boxart/TAM20072.jpg',
+  'Tamiya 20001': 'boxart/BOX_20001.jpg',
+  'Tamiya 20002': 'boxart/BOX_20002.jpg',
+  'Tamiya 20003': 'boxart/BOX_20003.jpg',
+  'Tamiya 20004': 'boxart/BOX_20004.jpg',
+  'Tamiya 20005': 'boxart/BOX_20005.jpg',
+  'Tamiya 20006': 'boxart/BOX_20006.jpg',
+  'Tamiya 20007': 'boxart/BOX_20007.jpg',
+  'Tamiya 20008': 'boxart/BOX_20008.jpg',
+  'Tamiya 20009': 'boxart/BOX_20009.jpg',
+  'Tamiya 20010': 'boxart/BOX_20010.jpg',
+  'Tamiya 20011': 'boxart/BOX_20011.jpg',
+  'Tamiya 20012': 'boxart/BOX_20012.jpg',
+  'Tamiya 20013': 'boxart/BOX_20013.jpg',
+  'Tamiya 20014': 'boxart/BOX_20014.jpg',
+  'Tamiya 20018': 'boxart/BOX_20018.jpg',
+  'Tamiya 20019': 'boxart/BOX_20019.jpg',
+  'Tamiya 20020': 'boxart/BOX_20020.jpg',
+  'Tamiya 20021': 'boxart/BOX_20021.jpg',
+  'Tamiya 20022': 'boxart/BOX_20022.jpg',
+  'Tamiya 20023': 'boxart/BOX_20023.jpg',
+  'Tamiya 20025': 'boxart/BOX_20025.jpg',
+  'Tamiya 20026': 'boxart/BOX_20026.jpg',
+  'Tamiya 20028': 'boxart/BOX_20028.jpg',
+  'Tamiya 20029': 'boxart/BOX_20029.jpg',
+  'Tamiya 20030': 'boxart/BOX_20030.jpg',
+  'Tamiya 20032': 'boxart/BOX_20032.jpg',
+  'Tamiya 20033': 'boxart/BOX_20033.jpg',
+  'Tamiya 20035': 'boxart/BOX_20035.jpg',
+  'Tamiya 20036': 'boxart/BOX_20036.jpg',
+  'Tamiya 20038': 'boxart/BOX_20038.jpg',
+  'Tamiya 20039': 'boxart/BOX_20039.jpg',
+  'Tamiya 20043': 'boxart/BOX_20043.jpg',
+  'Tamiya 20044': 'boxart/BOX_20044.jpg',
+  'Tamiya 20045': 'boxart/BOX_20045.jpg',
+  'Tamiya 20046': 'boxart/BOX_20046.jpg',
+  'Tamiya 20048': 'boxart/BOX_20048.jpg',
+  'Tamiya 20049': 'boxart/BOX_20049.jpg',
+  'Tamiya 20052': 'boxart/BOX_20052.jpg',
+  'Tamiya 20069': 'boxart/BOX_20069.jpg',
+  'Tamiya 20070': 'boxart/BOX_20070.jpg',
+  'Tamiya 20071': 'boxart/BOX_20071.jpg',
+  'Tamiya 20072': 'boxart/BOX_20072.jpg',
   // Scala 1:24
-  'Tamiya 24088': 'boxart/TAM24088.jpg',
-  'Tamiya 24196': 'boxart/TAM24196.jpg',
-  'Tamiya 24266': 'boxart/TAM24266.jpg',
-  'Tamiya 24299': 'boxart/TAM24299.jpg'
+  'Tamiya 24088': 'boxart/BOX_24088.jpg',
+  'Tamiya 24196': 'boxart/BOX_24196.jpg',
+  'Tamiya 24266': 'boxart/BOX_24266.jpg',
+  'Tamiya 24299': 'boxart/BOX_24299.jpg'
 };
 
 // Generatore Box Art Ufficiale Tamiya SVG in alta definizione
@@ -2035,35 +2048,42 @@ function getBoxartPath(model) {
 
   // Corrispondenze accurate per modello per le sole scatole verificate
   const lower = fullText.toLowerCase();
-  if (lower.includes('b192')) return 'boxart/TAM20036.jpg'; // Benetton Ford B192 (KingKit autentica con logo)
-  if (lower.includes('b188')) return 'boxart/TAM20021.jpg'; // Benetton Ford B188 (KingKit autentica con logo)
-  if (lower.includes('mp4/4') || lower.includes('mp4-4')) return 'boxart/TAM20022.jpg';
-  if (lower.includes('mp4/5b') || lower.includes('mp4-5b')) return 'boxart/TAM20026.jpg';
-  if (lower.includes('mp4/7')) return 'boxart/TAM20035.jpg';
-  if (lower.includes('mp4/8')) return 'boxart/TAM20039.jpg';
-  if (lower.includes('mp4/13')) return 'boxart/TAM20046.jpg';
-  if (lower.includes('fw13b')) return 'boxart/TAM20025.jpg';
-  if (lower.includes('fw-11') || lower.includes('fw11')) return 'boxart/TAM20019.jpg';
-  if (lower.includes('fw07') || lower.includes('fw-07')) return 'boxart/TAM20014.jpg';
-  if (lower.includes('312t3')) return 'boxart/TAM20010.jpg';
-  if (lower.includes('f189') || lower.includes('640')) return 'boxart/TAM20023.jpg';
-  if (lower.includes('f1-2000') || lower.includes('f1 2000')) return 'boxart/TAM20048.jpg';
-  if (lower.includes('f2001')) return 'boxart/TAM20052.jpg';
-  if (lower.includes('jordan 191') || lower.includes('191')) return 'boxart/TAM20032.jpg';
-  if (lower.includes('lotus 78')) return 'boxart/TAM20004.jpg';
-  if (lower.includes('lotus 99t')) return 'boxart/TAM20020.jpg';
-  if (lower.includes('lotus 107b')) return 'boxart/TAM20038.jpg';
-  if (lower.includes('leyton house') || lower.includes('cg901b')) return 'boxart/TAM20028.jpg';
-  if (lower.includes('lotus 25')) return 'boxart/TAM20044.jpg';
-  if (lower.includes('m23')) return 'boxart/TAM20002.jpg';
-  if (lower.includes('fiat 131')) return 'boxart/TAM20069.jpg';
-  if (lower.includes('celica')) return 'boxart/TAM20072.jpg';
-  if (lower.includes('vaillant')) return 'boxart/TAM20071.jpg';
-  if (lower.includes('p34')) return 'boxart/TAM20001.jpg';
-  if (lower.includes('f40')) return 'boxart/TAM24299.jpg';
-  if (lower.includes('giulia')) return 'boxart/TAM24266.jpg';
-  if (lower.includes('boxster')) return 'boxart/TAM24196.jpg';
-  if (lower.includes('elan')) return 'boxart/TAM24088.jpg';
+  if (lower.includes('b192')) return 'boxart/BOX_20036.jpg';
+  if (lower.includes('b188')) return 'boxart/BOX_20021.jpg';
+  if (lower.includes('mp4/4') || lower.includes('mp4-4')) return 'boxart/BOX_20022.jpg';
+  if (lower.includes('mp4/5b') || lower.includes('mp4-5b')) return 'boxart/BOX_20026.jpg';
+  if (lower.includes('mp4/7')) return 'boxart/BOX_20035.jpg';
+  if (lower.includes('mp4/8')) return 'boxart/BOX_20039.jpg';
+  if (lower.includes('mp4/13')) return 'boxart/BOX_20046.jpg';
+  if (lower.includes('fw13b')) return 'boxart/BOX_20025.jpg';
+  if (lower.includes('fw-11') || lower.includes('fw11')) return 'boxart/BOX_20019.jpg';
+  if (lower.includes('fw07') || lower.includes('fw-07')) return 'boxart/BOX_20014.jpg';
+  if (lower.includes('312t3')) return 'boxart/BOX_20010.jpg';
+  if (lower.includes('f189') || lower.includes('640')) return 'boxart/BOX_20023.jpg';
+  if (lower.includes('f310b')) return 'boxart/BOX_20045.jpg';
+  if (lower.includes('f1-2000') || lower.includes('f1 2000')) return 'boxart/BOX_20048.jpg';
+  if (lower.includes('f2001')) return 'boxart/BOX_20052.jpg';
+  if (lower.includes('jordan 191') || lower.includes('191')) return 'boxart/BOX_20032.jpg';
+  if (lower.includes('bt46') && !lower.includes('clear')) return 'boxart/BOX_20007.jpg';
+  if (lower.includes('js11')) return 'boxart/BOX_20012.jpg';
+  if (lower.includes('tyrrell') && lower.includes('020')) return 'boxart/BOX_20029.jpg';
+  if (lower.includes('102b')) return 'boxart/BOX_20030.jpg';
+  if (lower.includes('102d') && lower.includes('herbert')) return 'boxart/BOX_20033.jpg';
+  if (lower.includes('ra272')) return 'boxart/BOX_20043.jpg';
+  if (lower.includes('lotus 78')) return 'boxart/BOX_20004.jpg';
+  if (lower.includes('lotus 99t')) return 'boxart/BOX_20020.jpg';
+  if (lower.includes('lotus 107b')) return 'boxart/BOX_20038.jpg';
+  if (lower.includes('leyton house') || lower.includes('cg901b')) return 'boxart/BOX_20028.jpg';
+  if (lower.includes('lotus 25')) return 'boxart/BOX_20044.jpg';
+  if (lower.includes('m23')) return 'boxart/BOX_20002.jpg';
+  if (lower.includes('fiat 131')) return 'boxart/BOX_20069.jpg';
+  if (lower.includes('celica')) return 'boxart/BOX_20072.jpg';
+  if (lower.includes('vaillant')) return 'boxart/BOX_20071.jpg';
+  if (lower.includes('p34') && !lower.includes('monaco') && !lower.includes('japan')) return 'boxart/BOX_20001.jpg';
+  if (lower.includes('f40')) return 'boxart/BOX_24299.jpg';
+  if (lower.includes('giulia')) return 'boxart/BOX_24266.jpg';
+  if (lower.includes('boxster')) return 'boxart/BOX_24196.jpg';
+  if (lower.includes('elan')) return 'boxart/BOX_24088.jpg';
 
   return null;
 }
@@ -2821,8 +2841,39 @@ function updateFilterUI() {
   }
 }
 
+function ensureStatusButtonsPresent() {
+  const statusMatrix = $('statusFilterMatrix');
+  if (statusMatrix && !statusMatrix.querySelector('[data-status="IN_TRANSIT"]')) {
+    const backlogBtn = statusMatrix.querySelector('[data-status="BACKLOG"]');
+    const btn = document.createElement('button');
+    btn.className = 'rocker-btn';
+    btn.dataset.status = 'IN_TRANSIT';
+    btn.innerHTML = '<span class="led-jewel cyan-led"></span><span class="rocker-text">🚚 ACQUISTATO IN ARRIVO</span>';
+    if (backlogBtn && backlogBtn.nextSibling) {
+      statusMatrix.insertBefore(btn, backlogBtn.nextSibling);
+    } else {
+      statusMatrix.appendChild(btn);
+    }
+  }
+
+  const formStatusDeck = $('formStatusDeck');
+  if (formStatusDeck && !formStatusDeck.querySelector('input[value="IN_TRANSIT"]')) {
+    const backlogInput = formStatusDeck.querySelector('input[value="BACKLOG"]');
+    const backlogLabel = backlogInput ? backlogInput.closest('label') : null;
+    const label = document.createElement('label');
+    label.className = 'status-radio-pill';
+    label.innerHTML = '<input type="radio" name="formStatus" value="IN_TRANSIT"><span class="pill-body">🚚 ACQUISTATO IN ARRIVO</span>';
+    if (backlogLabel && backlogLabel.nextSibling) {
+      formStatusDeck.insertBefore(label, backlogLabel.nextSibling);
+    } else {
+      formStatusDeck.appendChild(label);
+    }
+  }
+}
+
 // ─── BOOT SEQUENCE ────────────────────────────────────────────────────────────
 async function bootSystem() {
+  ensureStatusButtonsPresent();
   // Boot clock
   setInterval(updateClock, 1000);
   updateClock();
