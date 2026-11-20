@@ -217,7 +217,7 @@ const TAMIYA_1_20_MODELS = [
   },
   {
     name: "Martini Porsche 935 Turbo Gr.5", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20005", status: "WISHLIST", progress: 0,
+    category: "Sport Car", kitCode: "Tamiya 20005", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1976", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-26 Pure White, TS-15 Blue, TS-8 Italian Red", aftermarket: "",
     notes: "Tamiya GP No.5 — Mostro del Campionato Mondiale Marche Gruppo 5 con motore 2.8L turbo da 590 CV e livrea Martini.", photo: null
@@ -238,14 +238,14 @@ const TAMIYA_1_20_MODELS = [
   },
   {
     name: "Kremer Porsche 935 Turbo", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20008", status: "WISHLIST", progress: 0,
+    category: "Sport Car", kitCode: "Tamiya 20008", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-26 White, TS-35 Park Green", aftermarket: "",
     notes: "Tamiya GP No.8 — Silhouette Gr.5 preparata dal Team Kremer per il campionato DRM.", photo: null
   },
   {
     name: "Toyota Celica LB Turbo Gr.5", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20009", status: "WISHLIST", progress: 0,
+    category: "Sport Car", kitCode: "Tamiya 20009", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-10 French Blue, TS-26 White", aftermarket: "",
     notes: "Tamiya GP No.9 — Preparazione Schnitzer Motorsport DRM con motore 4 cilindri turbo 560 CV e carrozzeria silhouette.", photo: null
@@ -258,11 +258,11 @@ const TAMIYA_1_20_MODELS = [
     notes: "Tamiya GP No.10 — Motore boxer 12 cilindri 3.0L con Carlos Reutemann e prima vittoria di Gilles Villeneuve in Canada.", photo: null
   },
   {
-    name: "Renault RE-20 Turbo (1980)", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20011", status: "WISHLIST", progress: 0,
-    stage: "Non Iniziato (Backlog)", location: "", year: "1980", purchasePrice: 0, estimatedValue: 0,
-    paints: "TS-16 Yellow, TS-26 White, TS-14 Black", aftermarket: "",
-    notes: "Tamiya GP No.11 — René Arnoux e Jean-Pierre Jabouille con motore V6 turbo 1.5L Renault-Gordini.", photo: null
+    name: "Racing Pit Team (Set Meccanici & Box)", brand: "Tamiya", scale: "1/20",
+    category: "Diorami", kitCode: "Tamiya 20011", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1979", purchasePrice: 0, estimatedValue: 0,
+    paints: "XF-1 Flat Black, XF-15 Flesh, X-7 Red, X-4 Blue", aftermarket: "",
+    notes: "Tamiya GP No.11 — Set 8 figure meccanici, team manager con lavagna tempi, pilota e attrezzatura pit-stop in scala 1/20.", photo: null
   },
   {
     name: "Ligier JS11 Ford (1979)", brand: "Tamiya", scale: "1/20",
@@ -284,6 +284,20 @@ const TAMIYA_1_20_MODELS = [
     stage: "Non Iniziato (Backlog)", location: "", year: "1979", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-26 White, TS-9 British Green", aftermarket: "",
     notes: "Tamiya GP No.14 — Prima vittoria di Frank Williams a Silverstone con Clay Regazzoni e Alan Jones.", photo: null
+  },
+  {
+    name: "Fiat 131 Abarth Rally Monte Carlo (1980)", brand: "Tamiya", scale: "1/20",
+    category: "Rally", kitCode: "Tamiya 20015", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1980", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-26 Pure White, TS-15 Blue, TS-36 Fluorescent Red", aftermarket: "",
+    notes: "Tamiya GP No.15 — Versione vincitrice del Rally di Monte Carlo 1980 con Walter Röhrl e Christian Geistdörfer.", photo: null
+  },
+  {
+    name: "Porsche 928S", brand: "Tamiya", scale: "1/20",
+    category: "Auto Stradali", kitCode: "Tamiya 20016", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1980", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-14 Black, TS-17 Gloss Aluminum", aftermarket: "",
+    notes: "Tamiya GP No.16 — Versione potenziata 928S con spoiler anteriore/posteriore e motore V8 4.7L da 300 CV.", photo: null
   },
   {
     name: "Brabham BT50 BMW Turbo (1982)", brand: "Tamiya", scale: "1/20",
@@ -447,6 +461,20 @@ const TAMIYA_1_20_MODELS = [
     notes: "Tamiya GP No.39 — Il leggendario 'giro degli dei' di Ayrton Senna a Donington Park 1993 e vittoria a Monaco.", photo: null
   },
   {
+    name: "Newman Haas Kmart Texaco Lola T93/00 Ford (1993)", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20040", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1993", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-14 Black, TS-26 Pure White", aftermarket: "",
+    notes: "Tamiya GP No.40 — La Lola T93/00 IndyCar del team Newman/Haas con cui Nigel Mansell vinse il titolo CART 1993 al debutto.", photo: null
+  },
+  {
+    name: "Dick Simon Duracell Mobil 1 Lola T93/00 Ford (1993)", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20041", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1993", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-14 Black, X-12 Gold Leaf / Copper", aftermarket: "",
+    notes: "Tamiya GP No.41 — Lola T93/00 Ford IndyCar in livrea rame/nero Duracell Mobil 1 Sadia guidata da Raul Boesel.", photo: null
+  },
+  {
     name: "Tyrrell Yamaha 023 (1995)", brand: "Tamiya", scale: "1/20",
     category: "Formula 1", kitCode: "Tamiya 20042", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1995", purchasePrice: 0, estimatedValue: 0,
@@ -482,11 +510,11 @@ const TAMIYA_1_20_MODELS = [
     notes: "Tamiya GP No.46 — Mika Häkkinen Campione del Mondo 1998. La prima McLaren firmata da Adrian Newey con livrea West.", photo: null
   },
   {
-    name: "Ferrari F310 (1996)", brand: "Tamiya", scale: "1/20",
+    name: "McLaren Mercedes MP4/13 Japanese GP (1998)", brand: "Tamiya", scale: "1/20",
     category: "Formula 1", kitCode: "Tamiya 20047", status: "WISHLIST", progress: 0,
-    stage: "Non Iniziato (Backlog)", location: "", year: "1996", purchasePrice: 0, estimatedValue: 0,
-    paints: "TS-8 Italian Red, TS-26 White", aftermarket: "",
-    notes: "Tamiya GP No.47 — Prima Ferrari di Michael Schumacher con motore V10 3.0L (magistrale vittoria a Barcellona sul bagnato).", photo: null
+    stage: "Non Iniziato (Backlog)", location: "", year: "1998", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-14 Black, TS-17 Gloss Aluminum", aftermarket: "",
+    notes: "Tamiya GP No.47 — Edizione GP Giappone 1998 a Suzuka con configurazione alare specifica con cui Mika Häkkinen vinse gara e Titolo Mondiale.", photo: null
   },
   {
     name: "Ferrari F1-2000 (2000)", brand: "Tamiya", scale: "1/20",
@@ -496,11 +524,25 @@ const TAMIYA_1_20_MODELS = [
     notes: "Tamiya GP No.48 — Michael Schumacher riporta il titolo Piloti a Maranello dopo 21 anni con la vittoria decisiva a Suzuka.", photo: null
   },
   {
+    name: "Ferrari F1-2000 Full View (Clear Cowl)", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20049", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "2000", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-8 Italian Red, X-11 Chrome Silver", aftermarket: "",
+    notes: "Tamiya GP No.49 — Edizione speciale Full View con carrozzeria trasparente per esporre il motore Ferrari 049 V10.", photo: null
+  },
+  {
     name: "Brabham BT46 Alfa Romeo Clear Cowl", brand: "Tamiya", scale: "1/20",
     category: "Formula 1", kitCode: "Tamiya 20050", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1978", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-8 Italian Red, X-11 Chrome Silver", aftermarket: "",
     notes: "Tamiya GP No.50 — Edizione speciale Clear Cowl con carrozzeria semi-trasparente per mostrare il motore flat-12 e telaio.", photo: null
+  },
+  {
+    name: "Ferrari 312T3 Clear Cowling Version", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20051", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1978", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-8 Italian Red, X-11 Chrome Silver", aftermarket: "",
+    notes: "Tamiya GP No.51 — Edizione Clear Cowling della 312T3 di Gilles Villeneuve e Carlos Reutemann con cofano trasparente.", photo: null
   },
   {
     name: "Ferrari F2001 (2001)", brand: "Tamiya", scale: "1/20",
@@ -511,10 +553,17 @@ const TAMIYA_1_20_MODELS = [
   },
   {
     name: "Tyrrell P34 Six-Wheeler 1977 Monaco GP", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20026", status: "WISHLIST", progress: 0,
+    category: "Formula 1", kitCode: "Tamiya 20053", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-15 Blue, TS-26 White", aftermarket: "",
     notes: "Tamiya GP No.53 — Versione GP Monaco 1977 con carrozzeria integrale aerodinamica guidata da Ronnie Peterson.", photo: null
+  },
+  {
+    name: "Ferrari F2001 Full View (Clear Cowl)", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20054", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "2001", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-8 Italian Red, X-11 Chrome Silver", aftermarket: "",
+    notes: "Tamiya GP No.54 — Edizione Full View della Ferrari F2001 Campione del Mondo con carrozzeria trasparente.", photo: null
   },
   {
     name: "Williams BMW FW24 (2002)", brand: "Tamiya", scale: "1/20",
@@ -522,6 +571,20 @@ const TAMIYA_1_20_MODELS = [
     stage: "Non Iniziato (Backlog)", location: "", year: "2002", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-15 Blue, TS-26 White", aftermarket: "",
     notes: "Tamiya GP No.55 — Il motore BMW V10 più potente della griglia (oltre 19.000 giri/min) con Juan Pablo Montoya e Ralf Schumacher.", photo: null
+  },
+  {
+    name: "Williams BMW FW24 Clearview Edition", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20056", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "2002", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-15 Blue, TS-26 White", aftermarket: "",
+    notes: "Tamiya GP No.56 — Versione Clearview con cofano motore trasparente per mostrare il V10 BMW P82 e il telaio.", photo: null
+  },
+  {
+    name: "Lotus 99T Honda (1987 Re-Release)", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20057", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1987", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-16 Yellow, TS-15 Blue", aftermarket: "",
+    notes: "Tamiya GP No.57 — Edizione aggiornata della Lotus Honda 99T di Ayrton Senna e Satoru Nakajima con nuove decal.", photo: null
   },
   {
     name: "Tyrrell P34 Japan GP 1976 Photo-Etched", brand: "Tamiya", scale: "1/20",
@@ -559,11 +622,32 @@ const TAMIYA_1_20_MODELS = [
     notes: "Tamiya GP No.62 — Ristampa da collezione con parti fotoincise di James Hunt Campione 1976.", photo: null
   },
   {
+    name: "Motorsports Team Set (1970-1985)", brand: "Tamiya", scale: "1/20",
+    category: "Diorami", kitCode: "Tamiya 20063", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1980", purchasePrice: 0, estimatedValue: 0,
+    paints: "XF-1 Flat Black, XF-15 Flesh, X-7 Red", aftermarket: "",
+    notes: "Tamiya GP No.63 — Set figure meccanici, piloti e attrezzatura da box F1 anni '70-'85 per diorami in scala 1/20.", photo: null
+  },
+  {
+    name: "Wolf WR1 1977 (Photo-Etched)", brand: "Tamiya", scale: "1/20",
+    category: "Formula 1", kitCode: "Tamiya 20064", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-15 Blue, X-12 Gold Leaf", aftermarket: "Fotoincisioni incluse",
+    notes: "Tamiya GP No.64 — Edizione speciale con parti fotoincise della Wolf WR1 Ford di Jody Scheckter.", photo: null
+  },
+  {
     name: "Team Lotus Type 78 1977 (Photo-Etched)", brand: "Tamiya", scale: "1/20",
     category: "Formula 1", kitCode: "Tamiya 20065", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-14 Black, X-12 Gold Leaf", aftermarket: "Fotoincisioni incluse",
     notes: "Tamiya GP No.65 — Ristampa fedele della J.P.S. Mk.III 1977 con dettagli fotoincisi per radiatori e alettoni.", photo: null
+  },
+  {
+    name: "Porsche 928S (Re-Release)", brand: "Tamiya", scale: "1/20",
+    category: "Auto Stradali", kitCode: "Tamiya 20066", status: "WISHLIST", progress: 0,
+    stage: "Non Iniziato (Backlog)", location: "", year: "1980", purchasePrice: 0, estimatedValue: 0,
+    paints: "TS-14 Black, TS-17 Gloss Aluminum", aftermarket: "",
+    notes: "Tamiya GP No.66 — Ristampa celebrativa della Gran Turismo V8 Porsche 928S in scala 1/20.", photo: null
   },
   {
     name: "Red Bull Racing Renault RB6 (2010)", brand: "Tamiya", scale: "1/20",
@@ -588,21 +672,21 @@ const TAMIYA_1_20_MODELS = [
   },
   {
     name: "Porsche 935 Martini Turbo Gr.5", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20070", status: "WISHLIST", progress: 0,
+    category: "Sport Car", kitCode: "Tamiya 20070", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1976", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-26 Pure White, Martini Stripes", aftermarket: "",
     notes: "Tamiya GP No.70 — Silhouette 1976 Campionato Mondiale Marche con motore boxer turbo e livrea Martini.", photo: null
   },
   {
     name: "Porsche 935 Vaillant Kremer Gr.5", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20071", status: "WISHLIST", progress: 0,
+    category: "Sport Car", kitCode: "Tamiya 20071", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-35 Park Green, TS-26 White", aftermarket: "",
     notes: "Tamiya GP No.71 — Livrea verde Vaillant Kremer pilotata da Bob Wollek nel campionato DRM tedesco.", photo: null
   },
   {
     name: "Toyota Celica LB Turbo Gr.5", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20072", status: "WISHLIST", progress: 0,
+    category: "Sport Car", kitCode: "Tamiya 20072", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "1977", purchasePrice: 0, estimatedValue: 0,
     paints: "TS-10 French Blue, TS-26 White", aftermarket: "",
     notes: "Tamiya GP No.72 — Livrea ufficiale Rodenstock Schnitzer Motorsport con motore 560 CV.", photo: null
@@ -737,7 +821,7 @@ function normalizeModelTaxonomy(m, convertBacklogToWishlist = false) {
   return changed;
 }
 
-const TAMIYA_120_RESET_KEY = 'modelkit_tamiya120_wishlist_reset_v1';
+const TAMIYA_120_RESET_KEY = 'modelkit_tamiya120_wishlist_reset_v3';
 
 function isTamiya120Model(m) {
   if (!m) return false;
@@ -753,8 +837,15 @@ function resetTamiya120ModelsInList(models) {
     if (o.kitCode) officialByCode.set(o.kitCode.trim().toLowerCase(), o);
   });
   let changed = false;
+  const presentCodes = new Set();
   for (const m of models) {
     if (!isTamiya120Model(m)) continue;
+    // Correzione codice errato GP No.53 (Tyrrell P34 1977 Monaco GP) che aveva kitCode Tamiya 20026
+    if ((m.name || '').includes('Tyrrell P34') && (m.name || '').includes('Monaco') && m.kitCode === 'Tamiya 20026') {
+      m.kitCode = 'Tamiya 20053';
+      changed = true;
+    }
+    if (m.kitCode) presentCodes.add(m.kitCode.trim().toLowerCase());
     const official = m.kitCode ? officialByCode.get(m.kitCode.trim().toLowerCase()) : null;
     if (
       m.status !== 'WISHLIST' ||
@@ -765,7 +856,8 @@ function resetTamiya120ModelsInList(models) {
       (m.estimatedValue || 0) !== 0 ||
       (m.aftermarket || '') !== '' ||
       m.photo !== null ||
-      m.scale !== '1/20'
+      m.scale !== '1/20' ||
+      (official && (m.name !== official.name || m.category !== official.category))
     ) {
       m.status         = 'WISHLIST';
       m.progress       = 0;
@@ -784,6 +876,31 @@ function resetTamiya120ModelsInList(models) {
         m.paints   = official.paints;
         m.notes    = official.notes;
       }
+      changed = true;
+    }
+  }
+  // Aggiunge eventuali kit ufficiali Tamiya 1/20 mancanti dalla collezione (es. 20015, 20016, 20040, 20041, 20049, 20051, 20054, 20056, 20057, 20063, 20064, 20066)
+  let maxId = models.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+  const nowIso = new Date().toISOString();
+  for (const official of TAMIYA_1_20_MODELS) {
+    const codeKey = (official.kitCode || '').trim().toLowerCase();
+    if (codeKey && !presentCodes.has(codeKey)) {
+      maxId++;
+      models.push({
+        ...official,
+        id: maxId,
+        status: 'WISHLIST',
+        progress: 0,
+        stage: 'Non Iniziato (Backlog)',
+        location: '',
+        purchasePrice: 0,
+        estimatedValue: 0,
+        aftermarket: '',
+        photo: null,
+        scale: '1/20',
+        addedAt: nowIso
+      });
+      presentCodes.add(codeKey);
       changed = true;
     }
   }
@@ -1938,35 +2055,65 @@ const BOXART_LOCAL = {
   'Tamiya 20012': 'boxart/BOX_20012.jpg',
   'Tamiya 20013': 'boxart/BOX_20013.jpg',
   'Tamiya 20014': 'boxart/BOX_20014.jpg',
+  'Tamiya 20015': 'boxart/BOX_20015.jpg',
+  'Tamiya 20016': 'boxart/BOX_20016.jpg',
+  'Tamiya 20017': 'boxart/BOX_20017.jpg',
   'Tamiya 20018': 'boxart/BOX_20018.jpg',
   'Tamiya 20019': 'boxart/BOX_20019.jpg',
   'Tamiya 20020': 'boxart/BOX_20020.jpg',
   'Tamiya 20021': 'boxart/BOX_20021.jpg',
   'Tamiya 20022': 'boxart/BOX_20022.jpg',
   'Tamiya 20023': 'boxart/BOX_20023.jpg',
+  'Tamiya 20024': 'boxart/BOX_20024.jpg',
   'Tamiya 20025': 'boxart/BOX_20025.jpg',
   'Tamiya 20026': 'boxart/BOX_20026.jpg',
+  'Tamiya 20027': 'boxart/BOX_20027.jpg',
   'Tamiya 20028': 'boxart/BOX_20028.jpg',
   'Tamiya 20029': 'boxart/BOX_20029.jpg',
   'Tamiya 20030': 'boxart/BOX_20030.jpg',
+  'Tamiya 20031': 'boxart/BOX_20031.jpg',
   'Tamiya 20032': 'boxart/BOX_20032.jpg',
   'Tamiya 20033': 'boxart/BOX_20033.jpg',
+  'Tamiya 20034': 'boxart/BOX_20034.jpg',
   'Tamiya 20035': 'boxart/BOX_20035.jpg',
   'Tamiya 20036': 'boxart/BOX_20036.jpg',
+  'Tamiya 20037': 'boxart/BOX_20037.jpg',
   'Tamiya 20038': 'boxart/BOX_20038.jpg',
   'Tamiya 20039': 'boxart/BOX_20039.jpg',
+  'Tamiya 20040': 'boxart/BOX_20040.jpg',
+  'Tamiya 20041': 'boxart/BOX_20041.jpg',
+  'Tamiya 20042': 'boxart/BOX_20042.jpg',
   'Tamiya 20043': 'boxart/BOX_20043.jpg',
   'Tamiya 20044': 'boxart/BOX_20044.jpg',
   'Tamiya 20045': 'boxart/BOX_20045.jpg',
   'Tamiya 20046': 'boxart/BOX_20046.jpg',
+  'Tamiya 20047': 'boxart/BOX_20047.jpg',
   'Tamiya 20048': 'boxart/BOX_20048.jpg',
   'Tamiya 20049': 'boxart/BOX_20049.jpg',
+  'Tamiya 20050': 'boxart/BOX_20050.jpg',
+  'Tamiya 20051': 'boxart/BOX_20051.jpg',
   'Tamiya 20052': 'boxart/BOX_20052.jpg',
+  'Tamiya 20053': 'boxart/BOX_20053.jpg',
+  'Tamiya 20054': 'boxart/BOX_20054.jpg',
+  'Tamiya 20055': 'boxart/BOX_20055.jpg',
+  'Tamiya 20056': 'boxart/BOX_20056.jpg',
+  'Tamiya 20057': 'boxart/BOX_20057.jpg',
+  'Tamiya 20058': 'boxart/BOX_20058.jpg',
+  'Tamiya 20059': 'boxart/BOX_20059.jpg',
+  'Tamiya 20060': 'boxart/BOX_20060.jpg',
+  'Tamiya 20061': 'boxart/BOX_20061.jpg',
+  'Tamiya 20062': 'boxart/BOX_20062.jpg',
+  'Tamiya 20063': 'boxart/BOX_20063.jpg',
+  'Tamiya 20064': 'boxart/BOX_20064.jpg',
+  'Tamiya 20065': 'boxart/BOX_20065.jpg',
+  'Tamiya 20066': 'boxart/BOX_20066.jpg',
+  'Tamiya 20067': 'boxart/BOX_20067.jpg',
+  'Tamiya 20068': 'boxart/BOX_20068.jpg',
   'Tamiya 20069': 'boxart/BOX_20069.jpg',
   'Tamiya 20070': 'boxart/BOX_20070.jpg',
   'Tamiya 20071': 'boxart/BOX_20071.jpg',
   'Tamiya 20072': 'boxart/BOX_20072.jpg',
-  // Scala 1:24
+  // Scala 1:24 verificate
   'Tamiya 24088': 'boxart/BOX_24088.jpg',
   'Tamiya 24196': 'boxart/BOX_24196.jpg',
   'Tamiya 24266': 'boxart/BOX_24266.jpg',
@@ -2046,44 +2193,37 @@ function getBoxartPath(model) {
     if (BOXART_LOCAL[key]) return BOXART_LOCAL[key];
   }
 
-  // Corrispondenze accurate per modello per le sole scatole verificate
+  // Corrispondenze accurate per modello per le sole scatole verificate (senza confondere ristampe/versioni diverse)
   const lower = fullText.toLowerCase();
-  if (lower.includes('b192')) return 'boxart/BOX_20036.jpg';
+  if (lower.includes('b192') && !lower.includes('clear')) return 'boxart/BOX_20036.jpg';
   if (lower.includes('b188')) return 'boxart/BOX_20021.jpg';
   if (lower.includes('mp4/4') || lower.includes('mp4-4')) return 'boxart/BOX_20022.jpg';
-  if (lower.includes('mp4/5b') || lower.includes('mp4-5b')) return 'boxart/BOX_20026.jpg';
+  if ((lower.includes('mp4/5b') || lower.includes('mp4-5b')) && !lower.includes('clear')) return 'boxart/BOX_20026.jpg';
   if (lower.includes('mp4/7')) return 'boxart/BOX_20035.jpg';
   if (lower.includes('mp4/8')) return 'boxart/BOX_20039.jpg';
-  if (lower.includes('mp4/13')) return 'boxart/BOX_20046.jpg';
+  if (lower.includes('mp4/13') && !lower.includes('japan')) return 'boxart/BOX_20046.jpg';
   if (lower.includes('fw13b')) return 'boxart/BOX_20025.jpg';
-  if (lower.includes('fw-11') || lower.includes('fw11')) return 'boxart/BOX_20019.jpg';
+  if ((lower.includes('fw-11') || lower.includes('fw11')) && !lower.includes('11b')) return 'boxart/BOX_20019.jpg';
   if (lower.includes('fw07') || lower.includes('fw-07')) return 'boxart/BOX_20014.jpg';
-  if (lower.includes('312t3')) return 'boxart/BOX_20010.jpg';
-  if (lower.includes('f189') || lower.includes('640')) return 'boxart/BOX_20023.jpg';
+  if (lower.includes('312t3') && !lower.includes('clear')) return 'boxart/BOX_20010.jpg';
+  if ((lower.includes('f189') || lower.includes('640')) && !lower.includes('portuguese')) return 'boxart/BOX_20023.jpg';
   if (lower.includes('f310b')) return 'boxart/BOX_20045.jpg';
   if (lower.includes('f1-2000') || lower.includes('f1 2000')) return 'boxart/BOX_20048.jpg';
-  if (lower.includes('f2001')) return 'boxart/BOX_20052.jpg';
-  if (lower.includes('jordan 191') || lower.includes('191')) return 'boxart/BOX_20032.jpg';
+  if (lower.includes('f2001') && !lower.includes('full view')) return 'boxart/BOX_20052.jpg';
+  if (lower.includes('jordan 191')) return 'boxart/BOX_20032.jpg';
   if (lower.includes('bt46') && !lower.includes('clear')) return 'boxart/BOX_20007.jpg';
   if (lower.includes('js11')) return 'boxart/BOX_20012.jpg';
   if (lower.includes('tyrrell') && lower.includes('020')) return 'boxart/BOX_20029.jpg';
   if (lower.includes('102b')) return 'boxart/BOX_20030.jpg';
   if (lower.includes('102d') && lower.includes('herbert')) return 'boxart/BOX_20033.jpg';
   if (lower.includes('ra272')) return 'boxart/BOX_20043.jpg';
-  if (lower.includes('lotus 78')) return 'boxart/BOX_20004.jpg';
-  if (lower.includes('lotus 99t')) return 'boxart/BOX_20020.jpg';
+  if (lower.includes('lotus 78') && !lower.includes('photo-etched')) return 'boxart/BOX_20004.jpg';
+  if (lower.includes('lotus 99t') && !lower.includes('clear')) return 'boxart/BOX_20020.jpg';
   if (lower.includes('lotus 107b')) return 'boxart/BOX_20038.jpg';
   if (lower.includes('leyton house') || lower.includes('cg901b')) return 'boxart/BOX_20028.jpg';
   if (lower.includes('lotus 25')) return 'boxart/BOX_20044.jpg';
-  if (lower.includes('m23')) return 'boxart/BOX_20002.jpg';
-  if (lower.includes('fiat 131')) return 'boxart/BOX_20069.jpg';
-  if (lower.includes('celica')) return 'boxart/BOX_20072.jpg';
-  if (lower.includes('vaillant')) return 'boxart/BOX_20071.jpg';
+  if (lower.includes('m23') && !lower.includes('photo-etched')) return 'boxart/BOX_20002.jpg';
   if (lower.includes('p34') && !lower.includes('monaco') && !lower.includes('japan')) return 'boxart/BOX_20001.jpg';
-  if (lower.includes('f40')) return 'boxart/BOX_24299.jpg';
-  if (lower.includes('giulia')) return 'boxart/BOX_24266.jpg';
-  if (lower.includes('boxster')) return 'boxart/BOX_24196.jpg';
-  if (lower.includes('elan')) return 'boxart/BOX_24088.jpg';
 
   return null;
 }
