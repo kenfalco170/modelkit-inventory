@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <meta name="theme-color" content="#0055ff">
+  <meta name="theme-color" content="#121917">
 </head>
 <body class="">
   <!-- CRT Scanline & Phosphor Overlay -->
@@ -47,7 +47,7 @@
               <span class="rocker-slider-mini"></span>
             </label>
           </div>
-          <button type="button" class="status-badge-glow" id="btnHeaderUsers" style="cursor:pointer; background:#0055ff; color:#ffffff; border-color:#0044cc;" title="Registra o cambia utente di test (Email e Password)">👤 UTENTI / LOGIN</button>
+          <button type="button" class="status-badge-glow" id="btnHeaderUsers" style="cursor:pointer; background:#F59E0B; color:#121917; border-color:#D97706;" title="Registra o cambia utente di test (Email e Password)">👤 UTENTI / LOGIN</button>
           <span class="status-badge-glow" id="dbStatusBadge" style="cursor:pointer;" title="Clicca per gestire l'accesso Cloud Firebase">DB: ONLINE</span>
         </div>
       </div>
@@ -57,7 +57,7 @@
         <div class="branding-group">
           <div class="brand-crest">
             <!-- Auto sportiva stilizzata di profilo (solo contorno) -->
-            <svg viewBox="0 0 120 48" class="crest-svg" fill="none" stroke="#0055ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg viewBox="0 0 120 48" class="crest-svg" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M6,34 L6,29 Q7,25 14,24 L34,21 Q44,11 60,10 L74,10 Q86,11 96,20 L108,23 Q114,25 114,30 L114,34 L102,34" />
               <path d="M82,34 L38,34" />
               <path d="M18,34 L6,34" />
@@ -871,7 +871,7 @@
       </div>
 
       <div style="padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-        <div id="authStatusBanner" style="padding: 0.85rem 1rem; border-radius: 6px; background: #eef5ff; border: 1px solid #b8d4f8; color: #0a1f44; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.4;">
+        <div id="authStatusBanner" style="padding: 0.85rem 1rem; border-radius: 6px; background: #141C19; border: 1px solid #2E3F38; color: #E8EFEA; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.4;">
           Stato: verifica sessione in corso...
         </div>
 
@@ -882,10 +882,10 @@
         </div>
 
         <!-- Form Registrazione / Login con Email e Password -->
-        <div id="authLoginSection" style="display: flex; flex-direction: column; gap: 0.85rem; background: #f6f9fe; border: 1px solid #cdddf0; border-radius: 6px; padding: 1rem;">
+        <div id="authLoginSection" style="display: flex; flex-direction: column; gap: 0.85rem; background: #141C19; border: 1px solid #2E3F38; border-radius: 6px; padding: 1rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.4rem;">
-            <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 800; color: #004ecc; letter-spacing: 0.08em;">ACCEDI O REGISTRATI CON EMAIL E PASSWORD</span>
-            <span style="font-family: var(--font-mono); font-size: 9px; color: #607898;">Archivio cloud privato per ogni utente</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 800; color: #F59E0B; letter-spacing: 0.08em;">ACCEDI O REGISTRATI CON EMAIL E PASSWORD</span>
+            <span style="font-family: var(--font-mono); font-size: 9px; color: #9BAEA6;">Archivio cloud privato per ogni utente</span>
           </div>
 
           <form id="authEmailForm" style="display: flex; flex-direction: column; gap: 0.7rem;" autocomplete="on">
@@ -910,7 +910,7 @@
               </div>
             </div>
             <div style="display: flex; gap: 0.6rem; margin-top: 0.25rem; flex-wrap: wrap;">
-              <button type="button" class="arcade-action-btn" id="btnAuthLoginSubmit" style="flex: 1; justify-content: center; border-color:#0055ff; color:#0055ff;">
+              <button type="button" class="arcade-action-btn" id="btnAuthLoginSubmit" style="flex: 1; justify-content: center; border-color:#F59E0B; color:#F59E0B;">
                 🔑 ACCEDI
               </button>
               <button type="button" class="arcade-turbo-btn" id="btnAuthRegisterSubmit" style="flex: 1; justify-content: center;">
@@ -919,8 +919,8 @@
             </div>
           </form>
 
-          <div style="display: flex; justify-content: center; border-top: 1px solid #dce6f2; padding-top: 0.75rem;">
-            <button type="button" class="btn-micro" id="btnAuthGoogle" style="background:#ffffff; color:#004ecc; border-color:#b8d4f8; padding: 6px 14px;">
+          <div style="display: flex; justify-content: center; border-top: 1px solid #283731; padding-top: 0.75rem;">
+            <button type="button" class="btn-micro" id="btnAuthGoogle" style="background:#1B2421; color:#FCD34D; border-color:#354A42; padding: 6px 14px;">
               🌐 Oppure accedi con Google
             </button>
           </div>
@@ -938,7 +938,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="tamiya124.js?v=2"></script>
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

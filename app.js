@@ -1101,21 +1101,21 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
   if (loggedIn) {
     if (badge) {
       badge.textContent = `☁️ ARCHIVIO: ${displayName.toUpperCase()}`;
-      badge.style.background = '#eef5ff';
-      badge.style.color = '#0055ff';
-      badge.style.borderColor = '#0055ff';
+      badge.style.background = 'rgba(245, 158, 11, 0.14)';
+      badge.style.color = '#FCD34D';
+      badge.style.borderColor = '#F59E0B';
     }
     if (storageDisplay) storageDisplay.textContent = 'FIRESTORE_PRIVATO';
     if (statusBanner) {
       if (errorMsg) {
-        statusBanner.style.background = isSuccessMsg ? '#ecfdf5' : '#fff7ed';
-        statusBanner.style.borderColor = isSuccessMsg ? '#6ee7b7' : '#fdba74';
-        statusBanner.style.color = isSuccessMsg ? '#065f46' : '#9a3412';
+        statusBanner.style.background = isSuccessMsg ? 'rgba(52, 211, 153, 0.14)' : 'rgba(245, 158, 11, 0.14)';
+        statusBanner.style.borderColor = isSuccessMsg ? '#34D399' : '#F59E0B';
+        statusBanner.style.color = isSuccessMsg ? '#6EE7B7' : '#FCD34D';
         statusBanner.innerHTML = `${isSuccessMsg ? '✓' : '⚠️'} ${escHtml(errorMsg)}`;
       } else {
-        statusBanner.style.background = '#ecfdf5';
-        statusBanner.style.borderColor = '#6ee7b7';
-        statusBanner.style.color = '#065f46';
+        statusBanner.style.background = 'rgba(52, 211, 153, 0.14)';
+        statusBanner.style.borderColor = '#34D399';
+        statusBanner.style.color = '#6EE7B7';
         statusBanner.innerHTML = `✓ <strong>Archivio personale attivo:</strong> ${escHtml(displayName)} (${escHtml(user.email)}). I tuoi modellini sono salvati nel tuo database privato.`;
       }
     }
@@ -1124,15 +1124,15 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
   } else {
     if (badge) {
       badge.textContent = '🔒 ACCESSO RICHIESTO';
-      badge.style.background = '#fff7ed';
-      badge.style.color = '#d97706';
-      badge.style.borderColor = '#f59e0b';
+      badge.style.background = 'rgba(245, 158, 11, 0.16)';
+      badge.style.color = '#F59E0B';
+      badge.style.borderColor = '#F59E0B';
     }
     if (storageDisplay) storageDisplay.textContent = 'BLOCCATO';
     if (statusBanner) {
-      statusBanner.style.background = errorMsg && !isSuccessMsg ? '#fef2f2' : '#fff7ed';
-      statusBanner.style.borderColor = errorMsg && !isSuccessMsg ? '#fca5a5' : '#fdba74';
-      statusBanner.style.color = errorMsg && !isSuccessMsg ? '#991b1b' : '#9a3412';
+      statusBanner.style.background = errorMsg && !isSuccessMsg ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.14)';
+      statusBanner.style.borderColor = errorMsg && !isSuccessMsg ? '#EF4444' : '#F59E0B';
+      statusBanner.style.color = errorMsg && !isSuccessMsg ? '#FCA5A5' : '#FCD34D';
       statusBanner.innerHTML = errorMsg
         ? `${isSuccessMsg ? '✓' : '⚠️'} ${escHtml(errorMsg)}`
         : '🔒 <strong>Registrazione obbligatoria:</strong> accedi o crea un nuovo account con Email e Password per avere il tuo database e archivio personale.';
@@ -1667,7 +1667,7 @@ function generateGaugeTicks() {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', x1); line.setAttribute('y1', y1);
       line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-      line.setAttribute('stroke', i % 4 === 0 ? '#3b1c6e' : '#2b1254');
+      line.setAttribute('stroke', i % 4 === 0 ? '#526B60' : '#2C3D36');
       line.setAttribute('stroke-width', i % 4 === 0 ? '2' : '1');
       g.appendChild(line);
     }
@@ -1732,7 +1732,7 @@ function renderModelCard(model) {
         <div class="card-brand-scale">
           <span class="card-brand">${escHtml(model.brand)}</span>
           <span class="card-scale-tag ${scaleTagClass}">${escHtml(displayScale)}</span>
-          ${model.year ? `<span class="card-scale-tag" style="background:#f4f7fb;color:#607898;border-color:#d4e2f2;">${escHtml(model.year)}</span>` : ''}
+          ${model.year ? `<span class="card-scale-tag" style="background:#141C19;color:#9BAEA6;border-color:#2E3F38;">${escHtml(model.year)}</span>` : ''}
         </div>
         <div class="card-wip-section">
           <div class="card-wip-header">
@@ -1872,7 +1872,7 @@ function openDetailModal(model) {
   c.innerHTML = `
     ${photoSection}
     <div class="detail-info-grid">
-      <div class="detail-info-block" style="grid-column: 1 / -1;"><span class="detail-info-label">DESCRIZIONE E CODICE KIT</span><span class="detail-info-value" style="font-size:16px; color:#0a225c; font-weight:800;">${escHtml(model.name)}${model.kitCode ? ` — ${escHtml(model.kitCode)}` : ''}</span></div>
+      <div class="detail-info-block" style="grid-column: 1 / -1;"><span class="detail-info-label">DESCRIZIONE E CODICE KIT</span><span class="detail-info-value" style="font-size:16px; color:#F3F7F5; font-weight:800;">${escHtml(model.name)}${model.kitCode ? ` — ${escHtml(model.kitCode)}` : ''}</span></div>
       <div class="detail-info-block"><span class="detail-info-label">MODELLO</span><span class="detail-info-value">${escHtml(model.name)}</span></div>
       <div class="detail-info-block"><span class="detail-info-label">MARCHIO</span><span class="detail-info-value">${escHtml(model.brand)}</span></div>
       <div class="detail-info-block"><span class="detail-info-label">SCALA</span><span class="detail-info-value">${escHtml(model.scale)}</span></div>
