@@ -2270,6 +2270,8 @@ function getBoxartPath(model) {
   if (matchNum) {
     const key = 'Tamiya ' + matchNum[1];
     if (BOXART_LOCAL[key]) return BOXART_LOCAL[key];
+    const num = parseInt(matchNum[1], 10);
+    if (num >= 24001 && num <= 24370) return `boxart/BOX_${matchNum[1]}.jpg`;
   }
 
   // Corrispondenze accurate per modello per le sole scatole verificate (senza confondere ristampe/versioni diverse)
