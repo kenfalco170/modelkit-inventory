@@ -510,13 +510,6 @@ const TAMIYA_1_20_MODELS = [
     notes: "Tamiya GP No.46 — Mika Häkkinen Campione del Mondo 1998. La prima McLaren firmata da Adrian Newey con livrea West.", photo: null
   },
   {
-    name: "McLaren Mercedes MP4/13 Japanese GP (1998)", brand: "Tamiya", scale: "1/20",
-    category: "Formula 1", kitCode: "Tamiya 20047", status: "WISHLIST", progress: 0,
-    stage: "Non Iniziato (Backlog)", location: "", year: "1998", purchasePrice: 0, estimatedValue: 0,
-    paints: "TS-14 Black, TS-17 Gloss Aluminum", aftermarket: "",
-    notes: "Tamiya GP No.47 — Edizione GP Giappone 1998 a Suzuka con configurazione alare specifica con cui Mika Häkkinen vinse gara e Titolo Mondiale.", photo: null
-  },
-  {
     name: "Ferrari F1-2000 (2000)", brand: "Tamiya", scale: "1/20",
     category: "Formula 1", kitCode: "Tamiya 20048", status: "WISHLIST", progress: 0,
     stage: "Non Iniziato (Backlog)", location: "", year: "2000", purchasePrice: 0, estimatedValue: 0,
@@ -1395,6 +1388,26 @@ function startFirestoreListener() {
         });
       });
       needCloudUpdate = true;
+    }
+
+    // Rimozione una tantum del duplicato KIT_0047 (id 47 / Tamiya 20047)
+    const remove47FlagKey = `modelkit_remove_kit_0047_v1_${activeUserId}`;
+    if (!localStorage.getItem(remove47FlagKey)) {
+      const idsToDelete = [];
+      for (let i = cloudModels.length - 1; i >= 0; i--) {
+        const m = cloudModels[i];
+        const codeLower = (m.kitCode || '').trim().toLowerCase();
+        if (Number(m.id) === 47 || codeLower === 'tamiya 20047') {
+          idsToDelete.push(String(m.id));
+          cloudModels.splice(i, 1);
+        }
+      }
+      if (idsToDelete.length > 0 && userCol) {
+        idsToDelete.forEach(docId => {
+          userCol.doc(docId).delete().catch(e => console.warn('Errore eliminazione KIT_0047 su Firestore:', e));
+        });
+      }
+      localStorage.setItem(remove47FlagKey, '1');
     }
 
     allModels = cloudModels;
