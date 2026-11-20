@@ -1060,6 +1060,7 @@ let isCloudSyncActive = false;
 let isApplyingCloudSnapshot = false;
 let isSeedingNewUser = false;
 let isSyncing124Batch = false;
+let isSyncing148Batch = false;
 
 function isAuthenticatedUser(user) {
   return Boolean(user && !user.isAnonymous && user.uid && user.email);
@@ -1165,6 +1166,9 @@ async function seedNewUserPersonalArchive() {
       ...TAMIYA_1_20_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, stage: 'Non Iniziato (Backlog)', location: '', purchasePrice: 0, estimatedValue: 0, aftermarket: '', photo: null, scale: '1/20', addedAt: nowIso })),
       ...(typeof TAMIYA_1_24_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_24_MODELS)
         ? TAMIYA_1_24_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof TAMIYA_1_48_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_48_MODELS)
+        ? TAMIYA_1_48_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -1455,6 +1459,66 @@ function startFirestoreListener() {
       }
     }
 
+    // Popolamento automatico Tamiya 1/48 Aircraft Series (61012-61129) per account esistenti
+    if (!isSyncing148Batch && typeof TAMIYA_1_48_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_48_MODELS) && TAMIYA_1_48_MODELS.length > 0 && cloudModels.length > 0) {
+      const existing148Nums = new Set();
+      cloudModels.forEach(m => {
+        const match = String(m.kitCode || '').match(/\b(61\d{3})\b/);
+        if (match) existing148Nums.add(match[1]);
+      });
+      if (existing148Nums.size < 50) {
+        isSyncing148Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const added148Models = [];
+        for (const m of TAMIYA_1_48_MODELS) {
+          const match = String(m.kitCode || '').match(/\b(61\d{3})\b/);
+          const num = match ? match[1] : null;
+          if (num && existing148Nums.has(num)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:48',
+            category: 'Aerei / Velivoli',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          added148Models.push(newItem);
+          if (num) existing148Nums.add(num);
+        }
+        if (added148Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < added148Models.length; i += BATCH_SIZE) {
+                const chunk = added148Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`✈️ Aggiunti ${added148Models.length} kit Tamiya 1/48 Aircraft Series in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Tamiya 1/48:', e);
+              isSyncing148Batch = false;
+            }
+          })();
+        } else {
+          isSyncing148Batch = false;
+        }
+      }
+    }
+
     // Rimozione una tantum del duplicato KIT_0047 (id 47 / Tamiya 20047)
     const remove47FlagKey = `modelkit_remove_kit_0047_v1_${activeUserId}`;
     if (!localStorage.getItem(remove47FlagKey)) {
@@ -1608,8 +1672,9 @@ function getFilteredSorted() {
       if (filterScale === '1:18') return m.scale === '1:18' || m.scale === '1/18';
       if (filterScale === '1:43') return m.scale === '1:43' || m.scale === '1/43';
       if (filterScale === '1:35') return m.scale === '1:35' || m.scale === '1/35';
+      if (filterScale === '1:48') return m.scale === '1:48' || m.scale === '1/48';
       if (filterScale === 'OTHER') {
-        const standardScales = ['1/20', '1:20', '1/20 Grand Prix', 'Formula 1', '1:24', '1/24', '1:12', '1/12', '1:18', '1/18', '1:43', '1/43', '1:35', '1/35'];
+        const standardScales = ['1/20', '1:20', '1/20 Grand Prix', 'Formula 1', '1:24', '1/24', '1:12', '1/12', '1:18', '1/18', '1:43', '1/43', '1:35', '1/35', '1:48', '1/48'];
         return !standardScales.includes(m.scale);
       }
       return m.scale === filterScale;
@@ -2266,12 +2331,13 @@ function getBoxartPath(model) {
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
   const fullText = (kitCode + ' ' + (model.name || '')).toUpperCase();
-  const matchNum = fullText.match(/\b(200\d{2}|24\d{3})\b/);
+  const matchNum = fullText.match(/\b(200\d{2}|24\d{3}|61\d{3})\b/);
   if (matchNum) {
     const key = 'Tamiya ' + matchNum[1];
     if (BOXART_LOCAL[key]) return BOXART_LOCAL[key];
     const num = parseInt(matchNum[1], 10);
     if (num >= 24001 && num <= 24370) return `boxart/BOX_${matchNum[1]}.jpg`;
+    if (num >= 61012 && num <= 61129) return `boxart/BOX_${matchNum[1]}.jpg`;
   }
 
   // Corrispondenze accurate per modello per le sole scatole verificate (senza confondere ristampe/versioni diverse)
