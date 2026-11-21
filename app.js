@@ -825,79 +825,8 @@ function isTamiya120Model(m) {
 }
 
 function resetTamiya120ModelsInList(models) {
-  const officialByCode = new Map();
-  TAMIYA_1_20_MODELS.forEach(o => {
-    if (o.kitCode) officialByCode.set(o.kitCode.trim().toLowerCase(), o);
-  });
-  let changed = false;
-  const presentCodes = new Set();
-  for (const m of models) {
-    if (!isTamiya120Model(m)) continue;
-    // Correzione codice errato GP No.53 (Tyrrell P34 1977 Monaco GP) che aveva kitCode Tamiya 20026
-    if ((m.name || '').includes('Tyrrell P34') && (m.name || '').includes('Monaco') && m.kitCode === 'Tamiya 20026') {
-      m.kitCode = 'Tamiya 20053';
-      changed = true;
-    }
-    if (m.kitCode) presentCodes.add(m.kitCode.trim().toLowerCase());
-    const official = m.kitCode ? officialByCode.get(m.kitCode.trim().toLowerCase()) : null;
-    if (
-      m.status !== 'WISHLIST' ||
-      (m.progress || 0) !== 0 ||
-      m.stage !== 'Non Iniziato (Backlog)' ||
-      (m.location || '') !== '' ||
-      (m.purchasePrice || 0) !== 0 ||
-      (m.estimatedValue || 0) !== 0 ||
-      (m.aftermarket || '') !== '' ||
-      m.photo !== null ||
-      m.scale !== '1/20' ||
-      (official && (m.name !== official.name || m.category !== official.category))
-    ) {
-      m.status         = 'WISHLIST';
-      m.progress       = 0;
-      m.stage          = 'Non Iniziato (Backlog)';
-      m.location       = '';
-      m.purchasePrice  = 0;
-      m.estimatedValue = 0;
-      m.aftermarket    = '';
-      m.photo          = null;
-      m.scale          = '1/20';
-      if (official) {
-        m.name     = official.name;
-        m.brand    = official.brand;
-        m.category = official.category;
-        m.year     = official.year;
-        m.paints   = official.paints;
-        m.notes    = official.notes;
-      }
-      changed = true;
-    }
-  }
-  // Aggiunge eventuali kit ufficiali Tamiya 1/20 mancanti dalla collezione (es. 20015, 20016, 20040, 20041, 20049, 20051, 20054, 20056, 20057, 20063, 20064, 20066)
-  let maxId = models.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
-  const nowIso = new Date().toISOString();
-  for (const official of TAMIYA_1_20_MODELS) {
-    const codeKey = (official.kitCode || '').trim().toLowerCase();
-    if (codeKey && !presentCodes.has(codeKey)) {
-      maxId++;
-      models.push({
-        ...official,
-        id: maxId,
-        status: 'WISHLIST',
-        progress: 0,
-        stage: 'Non Iniziato (Backlog)',
-        location: '',
-        purchasePrice: 0,
-        estimatedValue: 0,
-        aftermarket: '',
-        photo: null,
-        scale: '1/20',
-        addedAt: nowIso
-      });
-      presentCodes.add(codeKey);
-      changed = true;
-    }
-  }
-  return changed;
+  // Disabilitato: non sovrascrivere MAI stato (In Possesso / Costruito / WIP), prezzi, note o collocazioni dell'utente!
+  return false;
 }
 
 function renderBrandFilterButtons() {
@@ -1062,6 +991,7 @@ let isSeedingNewUser = false;
 let isSyncing124Batch = false;
 let isSyncing148Batch = false;
 let isSyncing112Batch = false;
+let isSyncingExtra120Batch = false;
 
 function isAuthenticatedUser(user) {
   return Boolean(user && !user.isAnonymous && user.uid && user.email);
@@ -1173,6 +1103,9 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof TAMIYA_1_12_MODELS !== 'undefined' && Array.isArray(TAMIYA_1_12_MODELS)
         ? TAMIYA_1_12_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_20_MODELS !== 'undefined' && Array.isArray(EXTRA_1_20_MODELS)
+        ? EXTRA_1_20_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -1583,6 +1516,67 @@ function startFirestoreListener() {
       }
     }
 
+    // Popolamento automatico 1/20 Fujimi, Ebbro, Revell & Monogram per account esistenti
+    if (!isSyncingExtra120Batch && typeof EXTRA_1_20_MODELS !== 'undefined' && Array.isArray(EXTRA_1_20_MODELS) && EXTRA_1_20_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra120Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if (kc.startsWith('fujimi ') || kc.startsWith('ebbro ') || kc.startsWith('revell ') || kc.startsWith('monogram ')) {
+          existingExtra120Codes.add(kc);
+        }
+      });
+      if (existingExtra120Codes.size < 50) {
+        isSyncingExtra120Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtraModels = [];
+        for (const m of EXTRA_1_20_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra120Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1/20',
+            category: m.category || 'Formula 1',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtraModels.push(newItem);
+          if (kc) existingExtra120Codes.add(kc);
+        }
+        if (addedExtraModels.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtraModels.length; i += BATCH_SIZE) {
+                const chunk = addedExtraModels.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`🏎️ Aggiunti ${addedExtraModels.length} kit 1/20 (Fujimi, Ebbro, Revell, Monogram) in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1/20:', e);
+              isSyncingExtra120Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra120Batch = false;
+        }
+      }
+    }
+
     // Rimozione una tantum del duplicato KIT_0047 (id 47 / Tamiya 20047)
     const remove47FlagKey = `modelkit_remove_kit_0047_v1_${activeUserId}`;
     if (!localStorage.getItem(remove47FlagKey)) {
@@ -1605,14 +1599,7 @@ function startFirestoreListener() {
 
     allModels = cloudModels;
 
-    // Reset una tantum di eventuali personalizzazioni sui Tamiya 1/20 (tutti in WISHLIST)
-    const resetFlagKey = `${TAMIYA_120_RESET_KEY}_${activeUserId}`;
-    if (!localStorage.getItem(resetFlagKey)) {
-      if (resetTamiya120ModelsInList(cloudModels)) {
-        needCloudUpdate = true;
-      }
-      localStorage.setItem(resetFlagKey, '1');
-    }
+    // Sicurezza: nessun reset automatico sui dati utente (preserva sempre "In Possesso", "Costruito", prezzi, note e collocazioni)
 
     for (const m of cloudModels) {
       if (normalizeModelTaxonomy(m, false)) {
@@ -2398,18 +2385,25 @@ function generateBoxartSvg(model) {
 function getBoxartPath(model) {
   if (!model) return null;
   const kitCode = (model.kitCode || '').trim();
+  if (kitCode && typeof EXTRA_1_20_BOXARTS !== 'undefined' && EXTRA_1_20_BOXARTS[kitCode]) {
+    return EXTRA_1_20_BOXARTS[kitCode];
+  }
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
+  const brandLower = (model.brand || '').trim().toLowerCase();
+  const isTamiya = !brandLower || brandLower.includes('tamiya');
   const fullText = (kitCode + ' ' + (model.name || '')).toUpperCase();
-  const matchNum = fullText.match(/\b(200\d{2}|24\d{3}|61\d{3}|12\d{3}|14\d{3})\b/);
-  if (matchNum) {
-    const key = 'Tamiya ' + matchNum[1];
-    if (BOXART_LOCAL[key]) return BOXART_LOCAL[key];
-    const num = parseInt(matchNum[1], 10);
-    if (num >= 24001 && num <= 24370) return `boxart/BOX_${matchNum[1]}.jpg`;
-    if (num >= 61012 && num <= 61129) return `boxart/BOX_${matchNum[1]}.jpg`;
-    if (num >= 12001 && num <= 12057) return `boxart/BOX_${matchNum[1]}.jpg`;
-    if (num >= 14001 && num <= 14144) return `boxart/BOX_${matchNum[1]}.jpg`;
+  if (isTamiya) {
+    const matchNum = fullText.match(/\b(200\d{2}|24\d{3}|61\d{3}|12\d{3}|14\d{3})\b/);
+    if (matchNum) {
+      const key = 'Tamiya ' + matchNum[1];
+      if (BOXART_LOCAL[key]) return BOXART_LOCAL[key];
+      const num = parseInt(matchNum[1], 10);
+      if (num >= 24001 && num <= 24370) return `boxart/BOX_${matchNum[1]}.jpg`;
+      if (num >= 61012 && num <= 61129) return `boxart/BOX_${matchNum[1]}.jpg`;
+      if (num >= 12001 && num <= 12057) return `boxart/BOX_${matchNum[1]}.jpg`;
+      if (num >= 14001 && num <= 14144) return `boxart/BOX_${matchNum[1]}.jpg`;
+    }
   }
 
   // Corrispondenze accurate per modello per le sole scatole verificate (senza confondere ristampe/versioni diverse)
