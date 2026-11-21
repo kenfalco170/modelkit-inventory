@@ -2804,3 +2804,559 @@ body {
     font-size: 0.88rem;
   }
 }
+
+
+/* =============================================================================
+   MYMODELKIT — VINTAGE DARK NAVY EDITION (DEFAULT THEME)
+   Sfondo: #14213D | Card/Superfici: #1B2B4D | Testi & Bordi: #F4F0E4
+   Accenti in coppia: Rosso #D62828 & Blu #4A74D9
+   (Stesso layout, font e struttura: solo inversione cromatica ad alto contrasto)
+   ============================================================================= */
+
+:root {
+  --paper:                    #14213D;
+  --paper-card:               #1B2B4D;
+  --paper-deep:               #101B33;
+  --ink:                      #F4F0E4;
+  --ink-muted:                #CBC5B5;
+  --accent-red:               #D62828;
+  --accent-blue:              #4A74D9;
+
+  --surface:                  #1B2B4D;
+  --surface-dim:              #101B33;
+  --surface-bright:           #243761;
+  --surface-container-lowest: #0D162B;
+  --surface-container-low:    #14213D;
+  --surface-container:        #1B2B4D;
+  --surface-container-high:   #22355D;
+  --surface-container-highest:#2A406E;
+
+  --on-surface:               #F4F0E4;
+  --on-surface-variant:       #CBC5B5;
+  --inverse-surface:          #F4F0E4;
+  --inverse-on-surface:       #14213D;
+
+  --outline:                  #F4F0E4;
+  --outline-variant:          rgba(244, 240, 228, 0.32);
+  --surface-tint:             #4A74D9;
+
+  --primary:                  #D62828;
+  --on-primary:               #F4F0E4;
+  --primary-container:        rgba(214, 40, 40, 0.22);
+  --on-primary-container:     #FFD6D6;
+  --neon-magenta:             #D62828;
+
+  --secondary:                #4A74D9;
+  --on-secondary:             #F4F0E4;
+  --secondary-container:      rgba(74, 116, 217, 0.22);
+  --on-secondary-container:   #C7D9FF;
+  --neon-cyan:                #4A74D9;
+
+  --tertiary:                 #D62828;
+  --neon-amber:               #F4F0E4;
+  --neon-orange:              #F4F0E4;
+
+  --error:                    #FF6B6B;
+  --on-error:                 #14213D;
+  --error-container:          rgba(214, 40, 40, 0.28);
+
+  --background:               #14213D;
+  --on-background:            #F4F0E4;
+  --surface-variant:          #1B2B4D;
+}
+
+body {
+  background-color: #14213D;
+  color: #F4F0E4;
+  background-image: radial-gradient(rgba(244, 240, 228, 0.055) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+::-webkit-scrollbar-track { background: #0E172B; }
+::-webkit-scrollbar-thumb { background: #4A74D9; }
+::-webkit-scrollbar-thumb:hover { background: #D62828; }
+
+/* ─── STICKY TOP BAR ────────────────────────────────────────────────────────── */
+.sticky-top-bar {
+  background: rgba(20, 33, 61, 0.96);
+  border-top: 4px solid #D62828;
+  border-bottom: 3px solid #F4F0E4;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+.sticky-top-bar::before {
+  background: #4A74D9;
+}
+.telemetry-label { color: #F4F0E4; }
+.telemetry-sub,
+.vfd-divider { color: #CBC5B5; }
+.vfd-indicator.active-dot {
+  background: #D62828;
+  box-shadow: 0 0 0 2px rgba(244, 240, 228, 0.35);
+}
+
+.user-account-sticky-btn {
+  background: #F4F0E4;
+  color: #14213D;
+  border: 2px solid #F4F0E4;
+  box-shadow: 2px 2px 0 #D62828;
+}
+.user-account-sticky-btn:hover {
+  background: #4A74D9;
+  color: #F4F0E4;
+  border-color: #F4F0E4;
+  box-shadow: 3px 3px 0 #D62828;
+}
+
+/* ─── HEADER & HERO (con riquadro chiaro attorno al logo attuale) ───────────── */
+.binnacle-header {
+  background: #1B2B4D;
+  border: 3px solid #F4F0E4;
+  box-shadow: 6px 6px 0 #0B1222;
+}
+.brand-logo-wrap {
+  background: #F4F0E4;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 2px solid #F4F0E4;
+  box-shadow: 3px 3px 0 #0B1222;
+}
+.main-headline {
+  color: #F4F0E4;
+  -webkit-text-fill-color: #F4F0E4;
+}
+.headline-sub {
+  color: #D4CEBE;
+}
+.vintage-twin-band {
+  background: linear-gradient(
+    180deg,
+    #D62828 0px,
+    #D62828 6px,
+    #1B2B4D 6px,
+    #1B2B4D 8px,
+    #4A74D9 8px,
+    #4A74D9 14px
+  );
+  border-top: 2px solid #F4F0E4;
+}
+
+/* ─── FILTER CONSOLE ────────────────────────────────────────────────────────── */
+.control-deck-frame {
+  background: #1B2B4D;
+  border: 3px solid #F4F0E4;
+  box-shadow: 5px 5px 0 #0B1222;
+}
+.deck-title-strip {
+  background: #101B33;
+  color: #F4F0E4;
+  border-bottom: 4px solid #D62828;
+  box-shadow: inset 0 -2px 0 #4A74D9;
+}
+.deck-decor { color: #CBC5B5; }
+.control-pod-label { color: #F4F0E4; }
+
+.telemetry-select-wrapper,
+.telemetry-input-well {
+  background: #14213D;
+  border: 2px solid #F4F0E4;
+  box-shadow: 2px 2px 0 #0B1222;
+}
+.telemetry-select-wrapper:focus-within,
+.telemetry-input-well:focus-within {
+  border-color: #4A74D9;
+  box-shadow: 0 0 0 3px rgba(74, 116, 217, 0.38);
+}
+.telemetry-select,
+.telemetry-search-field {
+  color: #F4F0E4;
+  background: transparent;
+}
+.telemetry-select option {
+  background: #14213D;
+  color: #F4F0E4;
+}
+.telemetry-search-field::placeholder {
+  color: #9FB0D1;
+}
+.select-indicator { color: #F4F0E4; }
+.prompt-symbol    { color: #D62828; }
+.blinking-block   { color: #4A74D9; }
+.btn-clear-brand  { color: #FF7B7B; }
+
+.telemetry-reset-btn {
+  background: #14213D;
+  color: #F4F0E4;
+  border: 2px solid #F4F0E4;
+  box-shadow: 2px 2px 0 #D62828;
+}
+.telemetry-reset-btn:hover {
+  background: #D62828;
+  color: #F4F0E4;
+  border-color: #F4F0E4;
+}
+
+.deck-sub-bar {
+  background: #101B33;
+  border-top: 2px solid rgba(244, 240, 228, 0.45);
+}
+
+/* Buttons & Disabled States */
+.arcade-action-btn,
+.file-upload-label {
+  background: #14213D;
+  color: #F4F0E4;
+  border: 2px solid #F4F0E4;
+  box-shadow: 2px 2px 0 #0B1222;
+}
+.arcade-action-btn:hover,
+.file-upload-label:hover {
+  background: #4A74D9;
+  color: #FFFFFF;
+  border-color: #F4F0E4;
+  box-shadow: 3px 3px 0 #0B1222;
+}
+.arcade-turbo-btn {
+  background: #D62828;
+  color: #F4F0E4;
+  border: 2px solid #F4F0E4;
+  box-shadow: 3px 3px 0 #0B1222;
+}
+.arcade-turbo-btn:hover {
+  background: #B91C1C;
+  color: #FFFFFF;
+  box-shadow: 4px 4px 0 #0B1222;
+}
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  color: #B8C2D8 !important;
+  border-color: rgba(244, 240, 228, 0.4) !important;
+}
+
+/* ─── SECTION BANNER ────────────────────────────────────────────────────────── */
+.section-banner {
+  border-bottom: 3px solid #F4F0E4;
+}
+.neon-line {
+  background: linear-gradient(180deg, #D62828 0 50%, #4A74D9 50% 100%);
+}
+.banner-title h2 { color: #F4F0E4; }
+.active-count-tag {
+  background: #F4F0E4;
+  color: #14213D;
+  border: 2px solid #F4F0E4;
+}
+
+/* ─── MODEL CARDS: DARK VINTAGE BOX LABEL ───────────────────────────────────── */
+.model-card {
+  background: #1B2B4D;
+  border: 3px solid #F4F0E4;
+  box-shadow: 5px 5px 0 #0B1222;
+}
+.model-card:hover {
+  border-color: #F4F0E4;
+  box-shadow: 7px 8px 0 #0B1222;
+}
+.card-utility-strip {
+  background: #101B33;
+  border-bottom: 2px solid rgba(244, 240, 228, 0.55);
+}
+.card-tag { color: #CBC5B5; }
+
+/* High-contrast status badges on dark navy */
+.card-status-badge {
+  border-width: 1.5px;
+  border-style: solid;
+}
+.card-status-badge.status-WISHLIST       { background: #3D2E10; color: #FDE68A; border-color: #F59E0B; }
+.card-status-badge.status-BACKLOG        { background: #1B356B; color: #DBEAFE; border-color: #4A74D9; }
+.card-status-badge.status-IN_TRANSIT     { background: #103B3A; color: #99F6E4; border-color: #2DD4BF; }
+.card-status-badge.status-WIP            { background: #4A2411; color: #FED7AA; border-color: #FB923C; }
+.card-status-badge.status-COMPLETED      { background: #133B24; color: #BBF7D0; border-color: #4ADE80; }
+.card-status-badge.status-NOT_INTERESTED { background: #4C151B; color: #FECACA; border-color: #D62828; }
+.card-status-badge.status-OTHER          { background: #26344F; color: #E2E8F0; border-color: #94A3B8; }
+
+.card-photo-area {
+  background: #101B33;
+}
+.card-photo-area::after {
+  background: linear-gradient(
+    180deg,
+    #D62828 0px,
+    #D62828 4px,
+    #1B2B4D 4px,
+    #1B2B4D 6px,
+    #4A74D9 6px,
+    #4A74D9 10px
+  );
+  border-top: 2px solid #F4F0E4;
+  border-bottom: 2px solid #F4F0E4;
+}
+.boxart-stamp-pill {
+  background: rgba(20, 33, 61, 0.92);
+  color: #F4F0E4;
+  border: 1px solid #F4F0E4;
+}
+
+.card-body { background: #1B2B4D; }
+.card-model-name,
+.card-model-title { color: #F4F0E4; }
+.card-model-code  { color: #93B4FF; }
+.card-brand {
+  background: #F4F0E4;
+  color: #14213D;
+}
+.card-scale-tag {
+  background: #14213D !important;
+  color: #F4F0E4 !important;
+  border: 1.5px solid #F4F0E4 !important;
+}
+.card-scale-tag.scale-tamiya-gp {
+  background: #D62828 !important;
+  color: #F4F0E4 !important;
+  border-color: #F4F0E4 !important;
+}
+
+.card-wip-label { color: #CBC5B5; }
+.card-wip-pct   { color: #93B4FF; }
+.card-progress-track {
+  background: #101B33;
+  border: 1.5px solid #F4F0E4;
+}
+.card-progress-fill {
+  background: linear-gradient(90deg, #D62828 0%, #4A74D9 100%);
+}
+.card-stage-text { color: #D4CEBE; }
+
+.card-actions-row {
+  background: #101B33;
+  border-top: 2px solid rgba(244, 240, 228, 0.45);
+}
+.card-btn {
+  background: #4A74D9;
+  color: #FFFFFF;
+  border: 2px solid #F4F0E4;
+  box-shadow: 2px 2px 0 #0B1222;
+}
+.card-btn:hover {
+  background: #D62828;
+  color: #FFFFFF;
+  border-color: #F4F0E4;
+}
+.card-btn-danger {
+  background: #D62828 !important;
+  color: #F4F0E4 !important;
+  border-color: #F4F0E4 !important;
+}
+
+/* ─── EMPTY STATE & FOOTER ──────────────────────────────────────────────────── */
+.empty-state-card {
+  background: #1B2B4D;
+  border: 3px solid #F4F0E4;
+  box-shadow: 5px 5px 0 #0B1222;
+  color: #F4F0E4;
+}
+.empty-title { color: #F4F0E4; }
+.empty-desc  { color: #CBC5B5; }
+
+.cockpit-footer-bar {
+  background: #1B2B4D;
+  border: 3px solid #F4F0E4;
+  box-shadow: 4px 4px 0 #0B1222;
+  color: #F4F0E4;
+}
+.cluster-flag { color: #FF7B7B; }
+.cluster-item,
+.cluster-divider { color: #CBC5B5; }
+.cluster-item strong,
+.glow-text-cyan { color: #93B4FF; }
+.vintage-footer-stripe {
+  border: 1.5px solid #F4F0E4;
+  background: linear-gradient(180deg, #D62828 0 50%, #4A74D9 50% 100%);
+}
+.footer-up-btn {
+  background: #14213D;
+  color: #F4F0E4 !important;
+  border: 2px solid #F4F0E4 !important;
+}
+.footer-up-btn:hover {
+  background: #4A74D9;
+  color: #FFFFFF !important;
+}
+
+/* ─── MODALS, INPUTS, AUTH & ERROR MESSAGES ─────────────────────────────────── */
+.modal-backdrop {
+  background: rgba(8, 13, 25, 0.78);
+}
+.modal-console-window {
+  background: #14213D;
+  border: 3px solid #F4F0E4;
+  box-shadow: 8px 8px 0 #080E1B;
+  color: #F4F0E4;
+}
+.modal-window-header {
+  background: #101B33;
+  color: #F4F0E4;
+  border-bottom: 6px solid #D62828;
+  box-shadow: inset 0 -3px 0 #4A74D9;
+}
+.modal-tag { color: #CBC5B5; }
+.modal-title-box h3 { color: #F4F0E4; }
+.modal-close-btn {
+  background: #D62828;
+  color: #F4F0E4;
+  border: 2px solid #F4F0E4;
+}
+.modal-close-btn:hover { background: #B91C1C; }
+.modal-footer-actions {
+  background: #101B33;
+  border-top: 2px solid rgba(244, 240, 228, 0.45);
+}
+
+.form-label,
+.detail-spec-label { color: #F4F0E4; }
+
+.input-well,
+.cockpit-input,
+.cockpit-select,
+.cockpit-textarea {
+  background: #1B2B4D;
+  color: #F4F0E4;
+  border-color: #F4F0E4;
+}
+.cockpit-select option {
+  background: #14213D;
+  color: #F4F0E4;
+}
+.cockpit-input::placeholder,
+.cockpit-textarea::placeholder {
+  color: #9FB0D1;
+}
+.cockpit-input:focus,
+.cockpit-select:focus,
+.cockpit-textarea:focus {
+  outline: none;
+  border-color: #4A74D9;
+}
+
+#authLoginSection {
+  background: #1B2B4D !important;
+  border: 2px solid #F4F0E4 !important;
+  color: #F4F0E4 !important;
+}
+#authStatusBanner {
+  background: #1B2B4D !important;
+  border: 2px solid #F4F0E4 !important;
+  color: #F4F0E4 !important;
+}
+#betaSlotBanner {
+  background: #101B33 !important;
+  border: 2px solid #4A74D9 !important;
+  color: #F4F0E4 !important;
+}
+#betaSlotStatus {
+  color: #93B4FF !important;
+}
+#btnAuthLoginSubmit {
+  background: #4A74D9 !important;
+  color: #FFFFFF !important;
+  border-color: #F4F0E4 !important;
+}
+#btnAuthLoginSubmit:hover {
+  background: #3862C7 !important;
+}
+#btnAuthGoogle {
+  background: #F4F0E4 !important;
+  color: #14213D !important;
+  border: 2px solid #F4F0E4 !important;
+}
+#btnAuthGoogle:hover {
+  background: #FFFFFF !important;
+}
+
+.gauge-pod-binnacle {
+  background: #1B2B4D;
+  border: 2px solid #F4F0E4 !important;
+}
+.binnacle-header-strip {
+  background: #101B33;
+  color: #F4F0E4;
+  border-bottom: 3px solid #D62828;
+  box-shadow: inset 0 -1.5px 0 #4A74D9;
+}
+.strip-tag,
+.strip-status { color: #F4F0E4; }
+.gauge-well.aux-well { background: #1B2B4D; }
+.telem-title { color: #CBC5B5; }
+.vfd-display-box {
+  background: #101B33;
+  border: 2px solid #F4F0E4;
+  color: #F4F0E4;
+}
+.vfd-prefix { color: #FF7B7B; }
+.vfd-value  { color: #F4F0E4; }
+.boost-header { color: #F4F0E4; }
+.boost-track {
+  background: #101B33;
+  border: 1.5px solid #F4F0E4;
+}
+.boost-fill {
+  background: linear-gradient(90deg, #D62828 0%, #4A74D9 100%);
+}
+.scale-pill {
+  background: #14213D;
+  color: #F4F0E4;
+  border: 1.5px solid #F4F0E4;
+}
+#adminUsersList > div {
+  background: #14213D !important;
+  border: 1.5px solid rgba(244, 240, 228, 0.55) !important;
+  color: #F4F0E4 !important;
+}
+#adminUsersList span,
+#adminUsersList div { color: #F4F0E4; }
+
+.detail-spec-card,
+.detail-notes-box,
+.detail-photo-frame,
+.boxart-site-card,
+.photo-dropzone {
+  background: #1B2B4D;
+  border: 2px solid #F4F0E4;
+  color: #F4F0E4;
+}
+.detail-spec-value,
+.detail-notes-text,
+.boxart-site-title { color: #F4F0E4; }
+.boxart-site-desc  { color: #CBC5B5; }
+.boxart-site-card:hover {
+  border-color: #4A74D9;
+  box-shadow: 3px 3px 0 #0B1222;
+}
+.btn-micro {
+  background: #14213D;
+  color: #F4F0E4;
+  border: 1.5px solid #F4F0E4;
+}
+.btn-micro:hover {
+  background: #4A74D9;
+  color: #FFFFFF;
+}
+
+/* Error / Alert & Toast Contrast */
+.toast-notification,
+.telemetry-toast {
+  background: #101B33 !important;
+  color: #F4F0E4 !important;
+  border: 2px solid #F4F0E4 !important;
+  box-shadow: 4px 4px 0 #D62828 !important;
+}
+.toast-notification.error,
+.telemetry-toast.error {
+  background: #5C1216 !important;
+  color: #F4F0E4 !important;
+  border-color: #FF8A8A !important;
+}

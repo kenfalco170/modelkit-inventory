@@ -5,8 +5,8 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#F4F0E4",
-  "theme_color": "#F4F0E4",
+  "background_color": "#14213D",
+  "theme_color": "#14213D",
   "icons": [
     {
       "src": "mymodelkit-vintage-icon.svg",
