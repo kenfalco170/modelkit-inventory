@@ -3,32 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy — Static Model Kit Inventory</title>
+  <title>Privacy Policy — mymodelkit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <meta name="theme-color" content="#121917">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="mymodelkit-vintage-icon.svg">
+  <meta name="theme-color" content="#F4F0E4">
   <style>
     :root {
-      --bg: #121917;
-      --surface: #1B2421;
-      --surface-dark: #141C19;
-      --border: #2D3E38;
-      --accent: #F59E0B;
-      --accent-soft: rgba(245, 158, 11, 0.14);
-      --text: #E8EFEA;
-      --muted: #9BAEA6;
-      --ok: #6EE7B7;
+      --bg: #F4F0E4;
+      --surface: #FAF7EE;
+      --surface-dark: #EFE9D8;
+      --border: #14213D;
+      --accent: #D62828;
+      --accent-blue: #1D3F8F;
+      --accent-soft: rgba(214, 40, 40, 0.10);
+      --text: #14213D;
+      --muted: #3C4A68;
+      --ok: #1D3F8F;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
-      background-image:
-        linear-gradient(to right, rgba(167, 204, 189, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(167, 204, 189, 0.05) 1px, transparent 1px);
-      background-size: 48px 48px;
+      background-image: radial-gradient(rgba(20, 33, 61, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
       color: var(--text);
-      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       line-height: 1.65;
       min-height: 100vh;
       padding: 24px 16px 48px;
@@ -37,11 +37,10 @@
       max-width: 820px;
       margin: 0 auto;
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-top: 3px solid var(--accent);
-      border-radius: 10px;
+      border: 3px solid var(--border);
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      box-shadow: 6px 6px 0 var(--border);
     }
     .top-strip {
       display: flex;
@@ -50,12 +49,13 @@
       flex-wrap: wrap;
       gap: 10px;
       padding: 12px 22px;
-      background: var(--surface-dark);
-      border-bottom: 1px solid var(--border);
+      background: var(--border);
+      border-bottom: 6px solid var(--accent);
+      box-shadow: inset 0 -3px 0 var(--accent-blue);
       font-family: 'Space Mono', monospace;
       font-size: 10.5px;
       letter-spacing: 0.08em;
-      color: var(--accent);
+      color: #F4F0E4;
       text-transform: uppercase;
     }
     .back-link {
@@ -63,27 +63,29 @@
       align-items: center;
       gap: 6px;
       padding: 5px 12px;
-      background: var(--accent-soft);
-      border: 1px solid rgba(245, 158, 11, 0.45);
-      border-radius: 5px;
-      color: #FCD34D;
+      background: var(--accent);
+      border: 2px solid #F4F0E4;
+      border-radius: 8px;
+      color: #FFFFFF;
       text-decoration: none;
       font-weight: 700;
       font-size: 10px;
       transition: all 0.15s ease;
     }
     .back-link:hover {
-      background: var(--accent);
-      color: #121917;
+      background: var(--accent-blue);
+      color: #FFFFFF;
     }
     .content {
       padding: 28px 26px 32px;
     }
     h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: clamp(20px, 4vw, 28px);
-      color: #F3F7F5;
-      letter-spacing: 0.06em;
+      font-family: 'Arial Black', 'Archivo Black', Arial, sans-serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: clamp(22px, 4vw, 30px);
+      color: var(--text);
+      letter-spacing: -0.01em;
       margin-bottom: 6px;
     }
     .subtitle {
@@ -92,19 +94,20 @@
       color: var(--muted);
       margin-bottom: 24px;
       padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 2px solid var(--border);
     }
     h2 {
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      letter-spacing: 0.08em;
+      font-family: 'Arial Black', 'Archivo Black', Arial, sans-serif;
+      font-style: italic;
+      font-size: 14px;
+      letter-spacing: 0.02em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--accent-blue);
       margin: 24px 0 10px;
     }
     p, li {
       font-size: 14.5px;
-      color: #D7E2DC;
+      color: var(--text);
       margin-bottom: 10px;
     }
     ul {
@@ -114,9 +117,9 @@
     li { margin-bottom: 6px; }
     .highlight-box {
       background: var(--surface-dark);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
+      border: 2px solid var(--border);
+      border-left: 5px solid var(--accent);
+      border-radius: 10px;
       padding: 14px 16px;
       margin: 14px 0;
     }
