@@ -2854,9 +2854,13 @@ function openBoxartModal(modelId) {
   const qVinted = encodeURIComponent(`${model.brand || 'Tamiya'} ${model.kitCode || ''} scatola`);
   const qGoogle = encodeURIComponent(`${model.brand || 'Tamiya'} ${model.kitCode || ''} ${searchName} box art packaging`);
 
+  const qGunpla = encodeURIComponent(`${searchName} ${kitCodeClean}`.trim() || (model.brand || 'Bandai'));
+
   $('boxartLinkKingkit').href = `https://www.kingkit.co.uk/search?q=${qCode}`;
   $('boxartLinkScalemates').href = `https://www.scalemates.com/search.php?q=${qScalemates}`;
   $('boxartLinkPlazajapan').href = `https://www.plazajapan.com/search.php?search_query=${qPlaza}`;
+  if ($('boxartLinkBandai')) $('boxartLinkBandai').href = `https://bandai-hobby.net/search/?keyword=${qGunpla}`;
+  if ($('boxartLinkHlj'))    $('boxartLinkHlj').href    = `https://www.hlj.com/search/?q=${qGunpla}`;
   $('boxartLinkEbay').href = `https://www.ebay.com/sch/i.html?_nkw=${qEbay}`;
   $('boxartLinkVinted').href = `https://www.vinted.it/vetrine?search_text=${qVinted}`;
   $('boxartLinkGoogle').href = `https://www.google.com/search?tbm=isch&q=${qGoogle}`;
