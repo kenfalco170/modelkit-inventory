@@ -1334,6 +1334,7 @@ async function activateUserSession(user) {
       if (!existingDoc.exists) {
         const currentCount = await fetchBetaSlotCount();
         if (!isAdminUser(user) && typeof currentCount === 'number' && currentCount >= MAX_BETA_USERS) {
+          try { await user.delete(); } catch {}
           if (firebaseAuth) {
             try { await firebaseAuth.signOut(); } catch {}
           }
@@ -1349,9 +1350,10 @@ async function activateUserSession(user) {
           modelsCount: 0
         }, { merge: true });
 
-        // Aggiorna il contatore pubblico degli slot occupati
+        // Aggiorna subito il contatore pubblico degli slot occupati
         const nextCount = typeof currentCount === 'number' ? currentCount + 1 : 1;
         cachedBetaSlotCount = nextCount;
+        updateBetaSlotBanner(nextCount);
         firestoreDb.collection('system').doc('beta_stats').set({
           count: nextCount,
           maxSlots: MAX_BETA_USERS,
@@ -1445,6 +1447,13 @@ async function initFirestore() {
 
     if (typeof firebase.auth === 'function') {
       firebaseAuth = firebase.auth();
+      // Gestione eventuale ritorno da Google signInWithRedirect (fallback mobile Android)
+      firebaseAuth.getRedirectResult().catch(err => {
+        if (err && err.code) {
+          console.warn('Google redirect auth error:', err);
+          updateAuthUI(null, `Errore accesso Google: ${err.message || err.code}`);
+        }
+      });
       firebaseAuth.onAuthStateChanged(async (user) => {
         if (isAuthenticatedUser(user)) {
           await activateUserSession(user);
@@ -3473,20 +3482,42 @@ function setupEventListeners() {
       case 'auth/too-many-requests':
         return 'Troppi tentativi falliti. Attendi qualche minuto e riprova.';
       case 'auth/operation-not-allowed':
-        return 'Accesso Email/Password non ancora attivo su Firebase Console (Authentication → Sign-in method → Email/Password).';
+        return 'Metodo di accesso non ancora attivo su Firebase Console (Authentication → Sign-in method).';
+      case 'auth/popup-blocked':
+        return 'Popup bloccato dal browser: avvio accesso alternativo con reindirizzamento...';
+      case 'auth/popup-closed-by-user':
+        return 'Finestra di accesso Google chiusa prima di completare il login.';
+      case 'auth/unauthorized-domain':
+        return 'Dominio non autorizzato su Firebase Console (Authentication → Settings → Authorized domains).';
+      case 'auth/account-exists-with-different-credential':
+        return 'Esiste già un account con questa email usando un altro metodo di accesso.';
       default:
         return err && err.message ? err.message : 'Errore di autenticazione. Riprova.';
     }
   }
 
-  // Login con Google
+  // Login con Google (con controllo slot 20 tester e fallback redirect per Android/mobile)
   $('btnAuthGoogle')?.addEventListener('click', async () => {
     if (!firebaseAuth) return;
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    updateAuthUI(null, 'Connessione con Google in corso...', true);
     try {
-      const provider = new firebase.auth.GoogleAuthProvider();
       await firebaseAuth.signInWithPopup(provider);
-      showToast('✓ Accesso Google completato! Caricamento archivio personale...', 'cyan');
+      // Il controllo limite 20 tester e il salvataggio profilo avvengono in activateUserSession()
     } catch (err) {
+      const code = err && err.code ? err.code : '';
+      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+        updateAuthUI(null, 'Popup bloccato su questo dispositivo: reindirizzamento a Google in corso...', true);
+        try {
+          await firebaseAuth.signInWithRedirect(provider);
+          return;
+        } catch (redirErr) {
+          console.error('Errore fallback redirect Google:', redirErr);
+          updateAuthUI(null, `Errore accesso Google: ${formatAuthError(redirErr)}`);
+          return;
+        }
+      }
       console.error('Errore login Google:', err);
       updateAuthUI(null, `Errore accesso Google: ${formatAuthError(err)}`);
     }
