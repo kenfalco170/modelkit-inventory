@@ -996,6 +996,7 @@ let isSyncing148Batch = false;
 let isSyncing112Batch = false;
 let isSyncingExtra120Batch = false;
 let isSyncingExtra148Batch = false;
+let isSyncingExtra124Batch = false;
 let cachedBetaSlotCount = null;
 let lastReportedModelsCount = -1;
 
@@ -1275,6 +1276,9 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof EXTRA_1_48_MODELS !== 'undefined' && Array.isArray(EXTRA_1_48_MODELS)
         ? EXTRA_1_48_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_24_MODELS !== 'undefined' && Array.isArray(EXTRA_1_24_MODELS)
+        ? EXTRA_1_24_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -1862,6 +1866,73 @@ function startFirestoreListener() {
           })();
         } else {
           isSyncingExtra148Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Auto 1:24 multimarca (Hasegawa, Italeri, Revell, Heller, Fujimi, Aoshima, Beemax / NuNu, Belkits)
+    if (!isSyncingExtra124Batch && typeof EXTRA_1_24_MODELS !== 'undefined' && Array.isArray(EXTRA_1_24_MODELS) && EXTRA_1_24_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra124Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if (
+          m.scale === '1:24' && (
+            kc.startsWith('hasegawa ') || kc.startsWith('italeri ') || kc.startsWith('revell ') ||
+            kc.startsWith('heller ') || kc.startsWith('fujimi ') || kc.startsWith('aoshima ') ||
+            kc.startsWith('beemax / nunu ') || kc.startsWith('belkits ')
+          )
+        ) {
+          existingExtra124Codes.add(kc);
+        }
+      });
+      if (existingExtra124Codes.size < 50) {
+        isSyncingExtra124Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtra124Models = [];
+        for (const m of EXTRA_1_24_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra124Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:24',
+            category: m.category || 'Sport Car',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtra124Models.push(newItem);
+          if (kc) existingExtra124Codes.add(kc);
+        }
+        if (addedExtra124Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtra124Models.length; i += BATCH_SIZE) {
+                const chunk = addedExtra124Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`🚗 Aggiunti ${addedExtra124Models.length} kit auto 1:24 multimarca in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1:24:', e);
+              isSyncingExtra124Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra124Batch = false;
         }
       }
     }
@@ -2825,6 +2896,9 @@ function getBoxartPath(model) {
   }
   if (kitCode && typeof EXTRA_1_48_BOXARTS !== 'undefined' && EXTRA_1_48_BOXARTS[kitCode]) {
     return EXTRA_1_48_BOXARTS[kitCode];
+  }
+  if (kitCode && typeof EXTRA_1_24_BOXARTS !== 'undefined' && EXTRA_1_24_BOXARTS[kitCode]) {
+    return EXTRA_1_24_BOXARTS[kitCode];
   }
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
