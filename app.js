@@ -1047,6 +1047,7 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     }
     if (logoutSection) logoutSection.style.display = 'flex';
     if (loginSection) loginSection.style.display = 'none';
+    if ($('authValuationSection')) $('authValuationSection').style.display = '';
   } else {
     if (badge) {
       badge.textContent = '🔒 ACCESSO RICHIESTO';
@@ -1065,6 +1066,7 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     }
     if (logoutSection) logoutSection.style.display = 'none';
     if (loginSection) loginSection.style.display = 'flex';
+    if ($('authValuationSection')) $('authValuationSection').style.display = 'none';
   }
 }
 
@@ -1072,6 +1074,7 @@ function openAuthModal(mandatory = false) {
   const mustLock = mandatory || !isAuthenticatedUser(currentCloudUser);
   setAppLocked(mustLock);
   updateAuthUI(currentCloudUser);
+  refreshStats();
   const modal = $('authModalBackdrop');
   if (modal) {
     modal.style.display = '';
@@ -1799,17 +1802,17 @@ function refreshStats() {
   const totalPurchase = allModels.reduce((s, m) => s + (parseFloat(m.purchasePrice) || 0), 0);
   const totalEstimated= allModels.reduce((s, m) => s + (parseFloat(m.estimatedValue) || 0), 0);
 
-  // Update DOM
-  $('statCompletedCount').textContent = completed;
-  $('statWipCount').textContent       = wip;
-  $('statBacklogCount').textContent   = backlog + wishlist;
-  $('speedTotalVal').textContent      = total;
-  $('tachoRateVal').textContent       = completionPct + '%';
-  $('valPurchaseTotal').textContent   = totalPurchase.toFixed(2);
-  $('valEstimatedTotal').textContent  = totalEstimated.toFixed(2);
-  $('boostFillBar').style.width       = wipRatio + '%';
-  $('boostRatioText').textContent     = (wipRatio / 10).toFixed(1) + ' BAR';
-  if ($('tapeCounter')) $('tapeCounter').textContent = String(total).padStart(4, '0');
+  // Update DOM (con controlli null-safe per elementi rimossi dalla pagina principale)
+  if ($('statCompletedCount')) $('statCompletedCount').textContent = completed;
+  if ($('statWipCount'))       $('statWipCount').textContent       = wip;
+  if ($('statBacklogCount'))   $('statBacklogCount').textContent   = backlog + wishlist;
+  if ($('speedTotalVal'))      $('speedTotalVal').textContent      = total;
+  if ($('tachoRateVal'))       $('tachoRateVal').textContent       = completionPct + '%';
+  if ($('valPurchaseTotal'))   $('valPurchaseTotal').textContent   = totalPurchase.toFixed(2);
+  if ($('valEstimatedTotal'))  $('valEstimatedTotal').textContent  = totalEstimated.toFixed(2);
+  if ($('boostFillBar'))       $('boostFillBar').style.width       = wipRatio + '%';
+  if ($('boostRatioText'))     $('boostRatioText').textContent     = (wipRatio / 10).toFixed(1) + ' BAR';
+  if ($('tapeCounter'))        $('tapeCounter').textContent        = String(total).padStart(4, '0');
 
   // Animate tachometer (completion gauge)
   animateRadialGauge('tachoActiveArc', 'tachoNeedle', completionPct, 380, -225, 45);
