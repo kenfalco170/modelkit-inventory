@@ -3360,3 +3360,607 @@ textarea:disabled {
   color: #F4F0E4 !important;
   border-color: #FF8A8A !important;
 }
+
+
+/* =============================================================================
+   MYMODELKIT — BRITISH RACING GREEN EDITION (DEFAULT THEME)
+   Sfondo: #0F1F1A | Card/Pannelli: #172B24 | Bordi: #2E4A40
+   Testi: #F4F0E4 | Secondari & Label: #9DB5AA
+   Accento Principale: Oro #E3B23C (testo #0F1F1A) | Secondario: Rosso #D62828
+   (Stesso layout, font, contenuti e logo attuale: solo palette coerente)
+   ============================================================================= */
+
+:root {
+  --paper:                    #0F1F1A;
+  --paper-card:               #172B24;
+  --paper-deep:               #11231D;
+  --ink:                      #F4F0E4;
+  --ink-muted:                #9DB5AA;
+  --accent-gold:              #E3B23C;
+  --accent-red:               #D62828;
+  --accent-blue:              #E3B23C;
+
+  --surface:                  #172B24;
+  --surface-dim:              #11231D;
+  --surface-bright:           #1E372E;
+  --surface-container-lowest: #0B1713;
+  --surface-container-low:    #0F1F1A;
+  --surface-container:        #172B24;
+  --surface-container-high:   #1D342C;
+  --surface-container-highest:#244036;
+
+  --on-surface:               #F4F0E4;
+  --on-surface-variant:       #9DB5AA;
+  --inverse-surface:          #F4F0E4;
+  --inverse-on-surface:       #0F1F1A;
+
+  --outline:                  #2E4A40;
+  --outline-variant:          #2E4A40;
+  --surface-tint:             #E3B23C;
+
+  --primary:                  #E3B23C;
+  --on-primary:               #0F1F1A;
+  --primary-container:        rgba(227, 178, 60, 0.16);
+  --on-primary-container:     #F4F0E4;
+  --neon-magenta:             #E3B23C;
+
+  --secondary:                #9DB5AA;
+  --on-secondary:             #0F1F1A;
+  --secondary-container:      rgba(157, 181, 170, 0.14);
+  --on-secondary-container:   #F4F0E4;
+  --neon-cyan:                #9DB5AA;
+
+  --tertiary:                 #E3B23C;
+  --neon-amber:               #9DB5AA;
+  --neon-orange:              #9DB5AA;
+
+  --error:                    #D62828;
+  --on-error:                 #F4F0E4;
+  --error-container:          rgba(214, 40, 40, 0.22);
+
+  --background:               #0F1F1A;
+  --on-background:            #F4F0E4;
+  --surface-variant:          #172B24;
+}
+
+body {
+  background-color: #0F1F1A;
+  color: #F4F0E4;
+  background-image: radial-gradient(rgba(157, 181, 170, 0.065) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+::-webkit-scrollbar-track { background: #0B1713; }
+::-webkit-scrollbar-thumb { background: #2E4A40; }
+::-webkit-scrollbar-thumb:hover { background: #E3B23C; }
+
+/* ─── STICKY TOP BAR ────────────────────────────────────────────────────────── */
+.sticky-top-bar {
+  background: rgba(15, 31, 26, 0.96);
+  border-top: 3px solid #E3B23C;
+  border-bottom: 2px solid #2E4A40;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+.sticky-top-bar::before {
+  height: 2px;
+  background: #D62828;
+}
+.telemetry-label { color: #F4F0E4; }
+.telemetry-sub,
+.vfd-divider { color: #9DB5AA; }
+.vfd-indicator.active-dot {
+  background: #E3B23C;
+  box-shadow: 0 0 0 2px rgba(227, 178, 60, 0.3);
+}
+
+.user-account-sticky-btn {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border: 2px solid #E3B23C;
+  box-shadow: 2px 2px 0 #07100D;
+}
+.user-account-sticky-btn:hover {
+  background: #ECC25A;
+  color: #0F1F1A;
+  border-color: #F4F0E4;
+  box-shadow: 3px 3px 0 #07100D;
+}
+
+/* ─── HEADER & HERO (logo attuale invariato, bande sottili oro + rosso) ─────── */
+.binnacle-header {
+  background: #172B24;
+  border: 2px solid #2E4A40;
+  box-shadow: 6px 6px 0 #07100D;
+}
+.brand-logo-wrap {
+  background: #F4F0E4;
+  border: 2px solid #2E4A40;
+  box-shadow: 3px 3px 0 #07100D;
+}
+.main-headline {
+  color: #F4F0E4;
+  -webkit-text-fill-color: #F4F0E4;
+}
+.headline-sub {
+  color: #9DB5AA;
+}
+.vintage-twin-band {
+  height: 8px;
+  background: linear-gradient(
+    180deg,
+    #E3B23C 0px,
+    #E3B23C 3px,
+    #172B24 3px,
+    #172B24 5px,
+    #D62828 5px,
+    #D62828 8px
+  );
+  border-top: 1px solid #2E4A40;
+}
+
+/* ─── FILTER CONSOLE ────────────────────────────────────────────────────────── */
+.control-deck-frame {
+  background: #172B24;
+  border: 2px solid #2E4A40;
+  box-shadow: 5px 5px 0 #07100D;
+}
+.deck-title-strip {
+  background: #11231D;
+  color: #9DB5AA;
+  border-bottom: 3px solid #E3B23C;
+  box-shadow: inset 0 -1.5px 0 #D62828;
+}
+.deck-decor { color: #9DB5AA; }
+.control-pod-label { color: #9DB5AA; }
+
+.telemetry-select-wrapper,
+.telemetry-input-well {
+  background: #0F1F1A;
+  border: 2px solid #2E4A40;
+  box-shadow: 2px 2px 0 #07100D;
+}
+.telemetry-select-wrapper:focus-within,
+.telemetry-input-well:focus-within {
+  border-color: #E3B23C;
+  box-shadow: 0 0 0 3px rgba(227, 178, 60, 0.28);
+}
+.telemetry-select,
+.telemetry-search-field {
+  color: #F4F0E4;
+  background: transparent;
+}
+.telemetry-select option {
+  background: #0F1F1A;
+  color: #F4F0E4;
+}
+.telemetry-search-field::placeholder {
+  color: #7D998D;
+}
+.select-indicator { color: #E3B23C; }
+.prompt-symbol    { color: #9DB5AA; }
+.blinking-block   { color: #E3B23C; }
+.btn-clear-brand  { color: #E3B23C; }
+
+/* Reset filtri: azione distruttiva -> rosso secondario #D62828 */
+.telemetry-reset-btn {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 2px solid #D62828;
+  box-shadow: 2px 2px 0 #07100D;
+}
+.telemetry-reset-btn:hover {
+  background: #D62828;
+  color: #F4F0E4;
+  border-color: #D62828;
+}
+
+.deck-sub-bar {
+  background: #11231D;
+  border-top: 2px solid #2E4A40;
+}
+
+/* Bottoni: principali oro #E3B23C (testo #0F1F1A), secondari sobri su #0F1F1A */
+.arcade-action-btn,
+.file-upload-label {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 2px solid #2E4A40;
+  box-shadow: 2px 2px 0 #07100D;
+}
+.arcade-action-btn:hover,
+.file-upload-label:hover {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border-color: #E3B23C;
+  box-shadow: 3px 3px 0 #07100D;
+}
+.arcade-turbo-btn {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border: 2px solid #E3B23C;
+  box-shadow: 3px 3px 0 #07100D;
+}
+.arcade-turbo-btn:hover {
+  background: #ECC25A;
+  color: #0F1F1A;
+  border-color: #F4F0E4;
+  box-shadow: 4px 4px 0 #07100D;
+}
+.turbo-led {
+  background: #0F1F1A;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  color: #9DB5AA !important;
+  border-color: #2E4A40 !important;
+}
+
+/* ─── SECTION BANNER ────────────────────────────────────────────────────────── */
+.section-banner {
+  border-bottom: 2px solid #2E4A40;
+}
+.neon-line {
+  background: linear-gradient(180deg, #E3B23C 0 50%, #D62828 50% 100%);
+}
+.banner-title h2 { color: #F4F0E4; }
+.active-count-tag {
+  background: #172B24;
+  color: #9DB5AA;
+  border: 2px solid #2E4A40;
+}
+
+/* ─── MODEL CARDS: BRITISH RACING GREEN BOX LABEL ───────────────────────────── */
+.model-card {
+  background: #172B24;
+  border: 2px solid #2E4A40;
+  box-shadow: 5px 5px 0 #07100D;
+}
+.model-card:hover {
+  border-color: #E3B23C;
+  box-shadow: 7px 8px 0 #07100D;
+}
+.card-utility-strip {
+  background: #11231D;
+  border-bottom: 1.5px solid #2E4A40;
+}
+.card-tag { color: #9DB5AA; }
+
+/* Badge di stato sobri: bordo #2E4A40 e testo crema #F4F0E4 senza colori accesi */
+.card-status-badge,
+.card-status-badge.status-WISHLIST,
+.card-status-badge.status-BACKLOG,
+.card-status-badge.status-IN_TRANSIT,
+.card-status-badge.status-WIP,
+.card-status-badge.status-COMPLETED,
+.card-status-badge.status-NOT_INTERESTED,
+.card-status-badge.status-OTHER {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 1.5px solid #2E4A40;
+}
+
+.card-photo-area {
+  background: #11231D;
+  padding-bottom: 6px;
+}
+/* Doppia banda sottile oro + rosso sotto la foto */
+.card-photo-area::after {
+  height: 6px;
+  background: linear-gradient(
+    180deg,
+    #E3B23C 0px,
+    #E3B23C 2.5px,
+    #172B24 2.5px,
+    #172B24 3.5px,
+    #D62828 3.5px,
+    #D62828 6px
+  );
+  border-top: 1px solid #2E4A40;
+  border-bottom: 1px solid #2E4A40;
+}
+.boxart-stamp-pill {
+  background: rgba(15, 31, 26, 0.92);
+  color: #9DB5AA;
+  border: 1px solid #2E4A40;
+}
+
+.card-body { background: #172B24; }
+.card-model-name,
+.card-model-title { color: #F4F0E4; }
+.card-model-code  { color: #9DB5AA; }
+.card-brand {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 1px solid #2E4A40;
+}
+.card-scale-tag {
+  background: #0F1F1A !important;
+  color: #F4F0E4 !important;
+  border: 1.5px solid #2E4A40 !important;
+}
+/* Badge scala speciale (1/20) -> rosso secondario #D62828 */
+.card-scale-tag.scale-tamiya-gp {
+  background: #D62828 !important;
+  color: #F4F0E4 !important;
+  border-color: #D62828 !important;
+}
+
+.card-wip-label { color: #9DB5AA; }
+.card-wip-pct   { color: #E3B23C; }
+.card-progress-track {
+  background: #2E4A40;
+  border: 1px solid #2E4A40;
+}
+.card-progress-fill {
+  background: #E3B23C;
+}
+.card-stage-text { color: #9DB5AA; }
+
+.card-actions-row {
+  background: #11231D;
+  border-top: 1.5px solid #2E4A40;
+}
+/* Bottone principale "DETTAGLI": oro #E3B23C con testo scuro #0F1F1A */
+.card-btn {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border: 2px solid #E3B23C;
+  box-shadow: 2px 2px 0 #07100D;
+}
+.card-btn:hover {
+  background: #ECC25A;
+  color: #0F1F1A;
+  border-color: #F4F0E4;
+}
+.card-btn-danger {
+  background: #D62828 !important;
+  color: #F4F0E4 !important;
+  border-color: #D62828 !important;
+}
+.card-btn-danger:hover {
+  background: #B91C1C !important;
+  color: #F4F0E4 !important;
+  border-color: #F4F0E4 !important;
+}
+
+/* ─── EMPTY STATE & FOOTER ──────────────────────────────────────────────────── */
+.empty-state-card {
+  background: #172B24;
+  border: 2px solid #2E4A40;
+  box-shadow: 5px 5px 0 #07100D;
+  color: #F4F0E4;
+}
+.empty-title { color: #F4F0E4; }
+.empty-desc  { color: #9DB5AA; }
+
+.cockpit-footer-bar {
+  background: #172B24;
+  border: 2px solid #2E4A40;
+  box-shadow: 4px 4px 0 #07100D;
+  color: #F4F0E4;
+}
+.cluster-flag { color: #9DB5AA; }
+.cluster-item,
+.cluster-divider { color: #9DB5AA; }
+.cluster-item strong,
+.glow-text-cyan { color: #F4F0E4; }
+.vintage-footer-stripe {
+  height: 7px;
+  border: 1px solid #2E4A40;
+  background: linear-gradient(180deg, #E3B23C 0 50%, #D62828 50% 100%);
+}
+.footer-up-btn {
+  background: #0F1F1A;
+  color: #F4F0E4 !important;
+  border: 1.5px solid #2E4A40 !important;
+}
+.footer-up-btn:hover {
+  background: #E3B23C;
+  color: #0F1F1A !important;
+  border-color: #E3B23C !important;
+}
+
+/* ─── MODALS, INPUTS, AUTH & DETAIL INSPECTOR ───────────────────────────────── */
+.modal-backdrop {
+  background: rgba(7, 16, 13, 0.80);
+}
+.modal-console-window {
+  background: #0F1F1A;
+  border: 2px solid #2E4A40;
+  box-shadow: 8px 8px 0 #060D0A;
+  color: #F4F0E4;
+}
+.modal-window-header {
+  background: #11231D;
+  color: #F4F0E4;
+  border-bottom: 4px solid #E3B23C;
+  box-shadow: inset 0 -2px 0 #D62828;
+}
+.modal-tag { color: #9DB5AA; }
+.modal-title-box h3 { color: #F4F0E4; }
+.modal-close-btn {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 2px solid #2E4A40;
+}
+.modal-close-btn:hover {
+  background: #D62828;
+  color: #F4F0E4;
+  border-color: #D62828;
+}
+.modal-footer-actions {
+  background: #11231D;
+  border-top: 2px solid #2E4A40;
+}
+
+.form-label,
+.detail-spec-label,
+.detail-info-label { color: #9DB5AA; }
+
+.input-well,
+.cockpit-input,
+.cockpit-select,
+.cockpit-textarea {
+  background: #172B24;
+  color: #F4F0E4;
+  border-color: #2E4A40;
+}
+.input-well:focus-within {
+  border-color: #E3B23C;
+  box-shadow: 0 0 0 2px rgba(227, 178, 60, 0.25);
+}
+.cockpit-select option {
+  background: #0F1F1A;
+  color: #F4F0E4;
+}
+.cockpit-input::placeholder,
+.cockpit-textarea::placeholder {
+  color: #7D998D;
+}
+.cockpit-input:focus,
+.cockpit-select:focus,
+.cockpit-textarea:focus {
+  border-color: #E3B23C;
+}
+
+#authLoginSection {
+  background: #172B24 !important;
+  border: 2px solid #2E4A40 !important;
+  color: #F4F0E4 !important;
+}
+#authStatusBanner {
+  background: #172B24 !important;
+  border: 2px solid #2E4A40 !important;
+  color: #F4F0E4 !important;
+}
+#betaSlotBanner {
+  background: #0F1F1A !important;
+  border: 1.5px solid #2E4A40 !important;
+  color: #9DB5AA !important;
+}
+#betaSlotStatus {
+  color: #E3B23C !important;
+}
+#btnAuthLoginSubmit {
+  background: #E3B23C !important;
+  color: #0F1F1A !important;
+  border-color: #E3B23C !important;
+}
+#btnAuthLoginSubmit:hover {
+  background: #ECC25A !important;
+  color: #0F1F1A !important;
+}
+#btnAuthGoogle {
+  background: #0F1F1A !important;
+  color: #F4F0E4 !important;
+  border: 2px solid #2E4A40 !important;
+}
+#btnAuthGoogle:hover {
+  background: #172B24 !important;
+  border-color: #E3B23C !important;
+}
+
+.gauge-pod-binnacle {
+  background: #172B24;
+  border: 2px solid #2E4A40 !important;
+}
+.binnacle-header-strip {
+  background: #11231D;
+  color: #9DB5AA;
+  border-bottom: 2px solid #E3B23C;
+  box-shadow: inset 0 -1px 0 #D62828;
+}
+.strip-tag,
+.strip-status { color: #9DB5AA; }
+.gauge-well.aux-well { background: #172B24; }
+.telem-title { color: #9DB5AA; }
+.vfd-display-box {
+  background: #0F1F1A;
+  border: 1.5px solid #2E4A40;
+  color: #F4F0E4;
+}
+.vfd-prefix { color: #E3B23C; }
+.vfd-value  { color: #F4F0E4; }
+.boost-header { color: #9DB5AA; }
+.boost-track {
+  background: #2E4A40;
+  border: 1px solid #2E4A40;
+}
+.boost-fill {
+  background: #E3B23C;
+}
+.scale-pill {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 1px solid #2E4A40;
+}
+#adminUsersList > div {
+  background: #0F1F1A !important;
+  border: 1.5px solid #2E4A40 !important;
+  color: #F4F0E4 !important;
+}
+#adminUsersList span,
+#adminUsersList div { color: #F4F0E4; }
+
+.detail-info-block,
+.detail-notes-block,
+.detail-spec-card,
+.detail-notes-box,
+.detail-photo-frame,
+.boxart-site-card,
+.photo-dropzone {
+  background: #172B24;
+  border: 1.5px solid #2E4A40;
+  color: #F4F0E4;
+}
+.detail-info-value,
+.detail-spec-value,
+.detail-notes-text,
+.boxart-site-title { color: #F4F0E4; }
+.boxart-site-desc  { color: #9DB5AA; }
+.boxart-site-card:hover {
+  border-color: #E3B23C;
+  box-shadow: 3px 3px 0 #07100D;
+}
+.btn-micro {
+  background: #0F1F1A;
+  color: #F4F0E4;
+  border: 1.5px solid #2E4A40;
+}
+.btn-micro:hover {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border-color: #E3B23C;
+}
+
+/* Status radio pills in Edit modal */
+.status-radio-pill {
+  background: #172B24;
+  border: 1.5px solid #2E4A40;
+  color: #F4F0E4;
+}
+input[name="formStatus"]:checked + .status-radio-pill {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border-color: #E3B23C;
+}
+
+/* Error / Alert & Toast Contrast */
+.toast-notification,
+.telemetry-toast {
+  background: #172B24 !important;
+  color: #F4F0E4 !important;
+  border: 2px solid #E3B23C !important;
+  box-shadow: 4px 4px 0 #07100D !important;
+}
+.toast-notification.error,
+.telemetry-toast.error {
+  background: #4E1414 !important;
+  color: #F4F0E4 !important;
+  border-color: #D62828 !important;
+}
