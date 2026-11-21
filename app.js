@@ -982,7 +982,7 @@ const firebaseConfig = {
 };
 
 const ADMIN_EMAIL = 'kenfalco170@gmail.com';
-const MAX_BETA_USERS = 5;
+const MAX_BETA_USERS = 20;
 
 let firestoreDb = null;
 let firebaseAuth = null;
@@ -1042,7 +1042,7 @@ function updateBetaSlotBanner(count) {
     if (regBtn) {
       regBtn.disabled = true;
       regBtn.style.opacity = '0.5';
-      regBtn.title = 'Limite massimo di 5 utenti test raggiunto';
+      regBtn.title = `Limite massimo di ${MAX_BETA_USERS} tester raggiunto`;
     }
   } else {
     banner.style.background = 'rgba(245, 158, 11, 0.10)';
@@ -1336,8 +1336,8 @@ async function activateUserSession(user) {
           if (firebaseAuth) {
             try { await firebaseAuth.signOut(); } catch {}
           }
-          deactivateUserSession('Limite massimo di 5 utenti test raggiunto.');
-          showToast('🚫 Limite massimo di 5 utenti test raggiunto', 'error');
+          deactivateUserSession(`Limite massimo di ${MAX_BETA_USERS} tester raggiunto.`);
+          showToast(`🚫 Limite massimo di ${MAX_BETA_USERS} tester raggiunto`, 'error');
           return;
         }
         await userRef.set({
@@ -3358,11 +3358,11 @@ function setupEventListeners() {
       return;
     }
 
-    // Controllo limite massimo di 5 utenti test prima della registrazione
+    // Controllo limite massimo di 20 tester prima della registrazione
     const slotCount = await fetchBetaSlotCount();
     if (email !== ADMIN_EMAIL && typeof slotCount === 'number' && slotCount >= MAX_BETA_USERS) {
-      updateAuthUI(null, 'Limite massimo di 5 utenti test raggiunto.');
-      showToast('🚫 Limite massimo di 5 utenti test raggiunto', 'error');
+      updateAuthUI(null, `Limite massimo di ${MAX_BETA_USERS} tester raggiunto.`);
+      showToast(`🚫 Limite massimo di ${MAX_BETA_USERS} tester raggiunto`, 'error');
       return;
     }
 

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Static Model Kit Inventory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#121917">
+  <style>
+    :root {
+      --bg: #121917;
+      --surface: #1B2421;
+      --surface-dark: #141C19;
+      --border: #2D3E38;
+      --accent: #F59E0B;
+      --accent-soft: rgba(245, 158, 11, 0.14);
+      --text: #E8EFEA;
+      --muted: #9BAEA6;
+      --ok: #6EE7B7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(to right, rgba(167, 204, 189, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(167, 204, 189, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      color: var(--text);
+      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      line-height: 1.65;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+    .top-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 22px;
+      background: var(--surface-dark);
+      border-bottom: 1px solid var(--border);
+      font-family: 'Space Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      border-radius: 5px;
+      color: #FCD34D;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 10px;
+      transition: all 0.15s ease;
+    }
+    .back-link:hover {
+      background: var(--accent);
+      color: #121917;
+    }
+    .content {
+      padding: 28px 26px 32px;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(20px, 4vw, 28px);
+      color: #F3F7F5;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    h2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 24px 0 10px;
+    }
+    p, li {
+      font-size: 14.5px;
+      color: #D7E2DC;
+      margin-bottom: 10px;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+    li { margin-bottom: 6px; }
+    .highlight-box {
+      background: var(--surface-dark);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin: 14px 0;
+    }
+    .highlight-box strong { color: #FCD34D; }
+    a.email-link {
+      color: var(--ok);
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    a.email-link:hover { text-decoration: underline; }
+    .footer {
+      padding: 14px 26px;
+      background: var(--surface-dark);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    @media (max-width: 560px) {
+      .content { padding: 20px 16px 24px; }
+      .top-strip, .footer { padding: 10px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top-strip">
+      <span>// PRIVACY_POLICY.SYS // INFORMATIVA SUL TRATTAMENTO DEI DATI</span>
+      <a href="index.html" class="back-link">← TORNA ALL'APP</a>
+    </div>
+
+    <div class="content">
+      <h1>PRIVACY POLICY</h1>
+      <p class="subtitle">Applicazione: <strong>Static Model Kit Inventory</strong> · Ultimo aggiornamento: 21 Novembre 2026</p>
+
+      <p>
+        La presente informativa descrive in modo chiaro e trasparente come l'applicazione web e Android
+        <strong>Static Model Kit Inventory</strong> raccoglie, utilizza e protegge i dati personali degli utenti
+        e dei partecipanti al programma di test chiuso su Google Play Store, ai sensi del Regolamento (UE) 2016/679 (GDPR).
+      </p>
+
+      <h2>1. Titolare del Trattamento e Contatti</h2>
+      <p>
+        Il titolare del trattamento dei dati è lo sviluppatore di <strong>Static Model Kit Inventory</strong>,
+        contattabile in qualsiasi momento all'indirizzo email:
+        <a href="mailto:kenfalco170@gmail.com" class="email-link">kenfalco170@gmail.com</a>.
+      </p>
+
+      <h2>2. Quali Dati Vengono Raccolti</h2>
+      <p>Per consentire il funzionamento dell'archivio personale e la sincronizzazione tra dispositivi, l'app raccoglie esclusivamente:</p>
+      <ul>
+        <li><strong>Dati di autenticazione e profilo:</strong> indirizzo email, nome/nickname scelto dall'utente (o fornito tramite accesso con Google), identificativo univoco account (UID), data di registrazione e data dell'ultimo accesso, gestiti tramite <strong>Google Firebase Authentication</strong>.</li>
+        <li><strong>Dati dell'inventario modellini:</strong> elenco dei kit statici, stati di avanzamento (<em>In Possesso</em>, <em>Costruito</em>, <em>In Costruzione</em>, <em>Wishlist</em>, ecc.), note personali, collocazione, prezzi/valutazioni inseriti dall'utente ed eventuali foto/URL personalizzati delle scatole.</li>
+        <li><strong>Archiviazione locale e cloud:</strong> i dati dell'inventario vengono salvati in locale sul dispositivo tramite <strong>IndexedDB</strong> (e <code>localStorage</code> per preferenze tecniche) e sincronizzati nel database cloud privato dell'utente su <strong>Google Cloud Firestore</strong>.</li>
+      </ul>
+
+      <h2>3. Finalità del Trattamento</h2>
+      <div class="highlight-box">
+        <p style="margin-bottom:0;">
+          <strong>Nessuna pubblicità e nessuna vendita di dati:</strong> i tuoi dati sono utilizzati
+          <strong>esclusivamente</strong> per far funzionare il tuo inventario personale di modellismo statico,
+          garantire l'accesso autenticato e sincronizzare la collezione tra i tuoi dispositivi (PC e smartphone Android).
+          L'app <strong>non</strong> mostra annunci pubblicitari, <strong>non</strong> esegue profilazione commerciale
+          e <strong>non</strong> vende né cede i dati a terzi.
+        </p>
+      </div>
+
+      <h2>4. Sicurezza e Servizi Terzi Utilizzati</h2>
+      <p>
+        L'infrastruttura di autenticazione e sincronizzazione cloud è fornita da <strong>Google Firebase</strong>
+        (Firebase Authentication e Cloud Firestore). Ogni utente accede esclusivamente alla propria area dati
+        isolata (<code>users/{uid}</code>), protetta da regole di sicurezza lato server e trasmissioni cifrate HTTPS/TLS.
+      </p>
+
+      <h2>5. Gestione dei Dati, Export Backup e Cancellazione Account</h2>
+      <p>In qualunque momento puoi esercitare il pieno controllo sui tuoi dati:</p>
+      <ul>
+        <li><strong>Esportazione Backup:</strong> direttamente dall'app tramite il pulsante <em>💾 SALVA BACKUP</em> puoi scaricare una copia completa in formato JSON del tuo inventario.</li>
+        <li><strong>Disconnessione:</strong> dal menu account (in alto a destra) puoi disconnetterti in qualsiasi momento (<em>🚪 DISCONNETTI ACCOUNT</em>).</li>
+        <li><strong>Cancellazione definitiva dell'account e dei dati:</strong> per richiedere l'eliminazione completa del tuo account Firebase e di tutti i dati associati nel database cloud (profilo e inventario), invia un'email a
+          <a href="mailto:kenfalco170@gmail.com?subject=Richiesta%20cancellazione%20account%20Static%20Model%20Kit%20Inventory" class="email-link">kenfalco170@gmail.com</a>
+          indicando l'indirizzo email usato per la registrazione. La richiesta viene evasa entro <strong>7 giorni lavorativi</strong>. Puoi inoltre eliminare i dati locali in qualsiasi momento cancellando i dati dell'app/browser dal tuo dispositivo.
+        </li>
+      </ul>
+
+      <h2>6. Minori e Aggiornamenti</h2>
+      <p>
+        L'applicazione è rivolta a un pubblico di appassionati di modellismo statico e non è destinata intenzionalmente
+        a minori di 13 anni. Eventuali aggiornamenti futuri a questa Privacy Policy saranno pubblicati su questa stessa pagina
+        con la relativa data di revisione.
+      </p>
+    </div>
+
+    <div class="footer">
+      <span>STATIC MODEL KIT INVENTORY &copy; 2026</span>
+      <a href="index.html" class="back-link">← TORNA ALL'INVENTARIO</a>
+    </div>
+  </main>
+</body>
+</html>
