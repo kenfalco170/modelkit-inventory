@@ -995,6 +995,7 @@ let isSyncing124Batch = false;
 let isSyncing148Batch = false;
 let isSyncing112Batch = false;
 let isSyncingExtra120Batch = false;
+let isSyncingExtra148Batch = false;
 let cachedBetaSlotCount = null;
 let lastReportedModelsCount = -1;
 
@@ -1271,6 +1272,9 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof EXTRA_1_20_MODELS !== 'undefined' && Array.isArray(EXTRA_1_20_MODELS)
         ? EXTRA_1_20_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_48_MODELS !== 'undefined' && Array.isArray(EXTRA_1_48_MODELS)
+        ? EXTRA_1_48_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -1791,6 +1795,73 @@ function startFirestoreListener() {
           })();
         } else {
           isSyncingExtra120Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Aerei 1:48 multimarca (Eduard, Academy, Airfix, Hobby Boss, Hasegawa, Italeri, Revell, Kinetic, Meng)
+    if (!isSyncingExtra148Batch && typeof EXTRA_1_48_MODELS !== 'undefined' && Array.isArray(EXTRA_1_48_MODELS) && EXTRA_1_48_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra148Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if (
+          m.scale === '1:48' && (
+            kc.startsWith('eduard ') || kc.startsWith('academy ') || kc.startsWith('airfix ') ||
+            kc.startsWith('hobby boss ') || kc.startsWith('hasegawa ') || kc.startsWith('italeri ') ||
+            kc.startsWith('revell ') || kc.startsWith('kinetic ') || kc.startsWith('meng ')
+          )
+        ) {
+          existingExtra148Codes.add(kc);
+        }
+      });
+      if (existingExtra148Codes.size < 50) {
+        isSyncingExtra148Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtra148Models = [];
+        for (const m of EXTRA_1_48_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra148Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:48',
+            category: 'Aerei / Velivoli',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtra148Models.push(newItem);
+          if (kc) existingExtra148Codes.add(kc);
+        }
+        if (addedExtra148Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtra148Models.length; i += BATCH_SIZE) {
+                const chunk = addedExtra148Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`✈️ Aggiunti ${addedExtra148Models.length} kit aerei 1:48 multimarca in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1:48:', e);
+              isSyncingExtra148Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra148Batch = false;
         }
       }
     }
@@ -2751,6 +2822,9 @@ function getBoxartPath(model) {
   const kitCode = (model.kitCode || '').trim();
   if (kitCode && typeof EXTRA_1_20_BOXARTS !== 'undefined' && EXTRA_1_20_BOXARTS[kitCode]) {
     return EXTRA_1_20_BOXARTS[kitCode];
+  }
+  if (kitCode && typeof EXTRA_1_48_BOXARTS !== 'undefined' && EXTRA_1_48_BOXARTS[kitCode]) {
+    return EXTRA_1_48_BOXARTS[kitCode];
   }
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
