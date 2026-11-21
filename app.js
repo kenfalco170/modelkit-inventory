@@ -2838,18 +2838,30 @@ function setupEventListeners() {
     renderGrid();
   });
 
-  // Pulsante Reset Rapido Filtri
+  // Pulsante Reset Rapido Filtri (azzera campi e lancia manualmente change/input)
   $('btnResetFilters')?.addEventListener('click', () => {
-    filterStatus   = 'ALL';
-    filterScale    = 'ALL';
-    filterCategory = 'ALL';
-    filterBrand    = 'ALL';
-    searchQuery    = '';
-    sortKey        = 'kitCode';
-    if ($('searchInput')) $('searchInput').value = '';
-    if ($('brandFilterInput')) $('brandFilterInput').value = '';
-    updateFilterUI();
-    renderGrid();
+    const selectDefaults = [
+      ['statusFilterSelect',   'ALL'],
+      ['scaleFilterSelect',    'ALL'],
+      ['categoryFilterSelect', 'ALL'],
+      ['sortFilterSelect',     'kitCode']
+    ];
+    selectDefaults.forEach(([id, defVal]) => {
+      const el = $(id);
+      if (el) {
+        el.value = defVal;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
+    ['searchInput', 'brandFilterInput'].forEach(id => {
+      const el = $(id);
+      if (el) {
+        el.value = '';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+
     showToast('✓ Filtri e ricerca azzerati', 'cyan');
   });
 
