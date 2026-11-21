@@ -2474,6 +2474,7 @@ function openNewModelModal() {
   $('formPhotoPreview').style.display  = 'block';
   $('formPhotoPreview').src     = generateBoxartSvg({ name: 'NUOVO MODELLO', scale: '1:24', kitCode: 'TAMIYA KIT' });
   $('modalWindowTitle').textContent    = 'REGISTRAZIONE NUOVO MODELLINO';
+  if ($('btnDeleteInEditModal')) $('btnDeleteInEditModal').style.setProperty('display', 'none', 'important');
   $('modelModalBackdrop').style.display = '';
   document.body.style.overflow  = 'hidden';
 }
@@ -2532,6 +2533,13 @@ function openEditModelModal(model) {
   $('formPhotoPreview').style.display = 'block';
 
   $('modalWindowTitle').textContent = 'MODIFICA MODELLINO // ' + (model.name || '').toUpperCase();
+  if ($('btnDeleteInEditModal')) {
+    if (isAdminUser(currentCloudUser)) {
+      $('btnDeleteInEditModal').style.removeProperty('display');
+    } else {
+      $('btnDeleteInEditModal').style.setProperty('display', 'none', 'important');
+    }
+  }
   $('modelModalBackdrop').style.display = '';
   document.body.style.overflow  = 'hidden';
 }
@@ -2590,9 +2598,7 @@ function openDetailModal(model) {
     </div>` : '';
 
   const adminActionsHtml = isAdmin ? `
-      <button class="arcade-action-btn" id="detailEditBtn">✏️ MODIFICA</button>
-      <button class="arcade-action-btn" id="detailPhotoBtn" style="border-color:#F59E0B; color:#FCD34D;">📷 SCATTA / CARICA FOTO</button>
-      <button class="arcade-action-btn card-btn-danger" id="detailDeleteBtn">🗑️ ELIMINA</button>` : '';
+      <button class="arcade-action-btn" id="detailEditBtn">✏️ MODIFICA</button>` : '';
 
   c.innerHTML = `
     ${photoSection}
@@ -2641,13 +2647,6 @@ function openDetailModal(model) {
     $('detailEditBtn')?.addEventListener('click', () => {
       closeModal('detailModalBackdrop');
       openEditModelModal(model);
-    });
-    $('detailPhotoBtn')?.addEventListener('click', () => {
-      openBoxartModal(model.id);
-    });
-    $('detailDeleteBtn')?.addEventListener('click', async () => {
-      closeModal('detailModalBackdrop');
-      await deleteModel(model.id);
     });
   } else {
     $('userQuickProgress')?.addEventListener('input', e => {
@@ -3591,6 +3590,17 @@ function setupEventListeners() {
   });
 
   // Photo file & camera inputs (Solo Admin)
+  $('btnDeleteInEditModal')?.addEventListener('click', async () => {
+    if (!isAdminUser(currentCloudUser) || !editingId) {
+      showToast('🔒 Solo l\'Admin può eliminare modellini', 'error');
+      return;
+    }
+    const idToDelete = editingId;
+    await deleteModel(idToDelete);
+    if (!allModels.some(m => m.id === idToDelete)) {
+      closeModal('modelModalBackdrop');
+    }
+  });
   $('formPhotoFile')?.addEventListener('change', e => handlePhotoFile(e.target.files[0]));
   $('formPhotoCamera')?.addEventListener('change', e => handlePhotoFile(e.target.files[0]));
   $('btnChoosePhoto')?.addEventListener('click', () => { if (isAdminUser(currentCloudUser)) $('formPhotoFile')?.click(); });
