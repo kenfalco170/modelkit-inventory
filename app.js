@@ -1987,15 +1987,8 @@ function startFirestoreListener() {
       }, 400);
     }
 
-    // Aggiorna IndexedDB locale personale dell'utente
-    if (db) {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      store.clear();
-      for (const m of cloudModels) {
-        store.put(m);
-      }
-    }
+    // Aggiorna IndexedDB locale personale dell'utente in background (non bloccante)
+    scheduleIndexedDbMirror(cloudModels);
 
     renderBrandFilterButtons();
     renderGrid();
@@ -2252,13 +2245,71 @@ function renderScalePills() {
     ).join('');
 }
 
+let idbMirrorTimer = null;
+function scheduleIndexedDbMirror(models) {
+  if (!db) return;
+  if (idbMirrorTimer) clearTimeout(idbMirrorTimer);
+  const snapshotCopy = models.slice();
+  idbMirrorTimer = setTimeout(() => {
+    idbMirrorTimer = null;
+    if (!db) return;
+    try {
+      const clearTx = db.transaction(STORE_NAME, 'readwrite');
+      clearTx.objectStore(STORE_NAME).clear();
+      clearTx.oncomplete = () => {
+        const CHUNK = 200;
+        let idx = 0;
+        const writeChunk = () => {
+          if (!db || idx >= snapshotCopy.length) return;
+          try {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const end = Math.min(idx + CHUNK, snapshotCopy.length);
+            for (let i = idx; i < end; i++) {
+              store.put(snapshotCopy[i]);
+            }
+            idx = end;
+            if (idx < snapshotCopy.length) {
+              setTimeout(writeChunk, 25);
+            }
+          } catch (e) {
+            console.warn('Errore scrittura chunk IndexedDB:', e);
+          }
+        };
+        writeChunk();
+      };
+    } catch (e) {
+      console.warn('Errore mirror IndexedDB:', e);
+    }
+  }, 800);
+}
+
 // ─── MODEL CARD RENDERER ────────────────────────────────────────────────────
-function getEffectivePhotoInfo(model) {
+const GRID_PAGE_SIZE = 48;
+let lastFilteredModels = [];
+let renderedGridCount = 0;
+let gridScrollObserver = null;
+
+window.handleBoxartError = function(img, modelId) {
+  if (!img) return;
+  if (img.dataset.altSrc && img.src.indexOf(img.dataset.altSrc) === -1) {
+    const alt = img.dataset.altSrc;
+    img.dataset.altSrc = '';
+    img.src = alt;
+    return;
+  }
+  img.onerror = null;
+  const model = allModels.find(m => Number(m.id) === Number(modelId)) || { name: img.alt || 'MODEL KIT', scale: '1:24', kitCode: '' };
+  img.src = generateBoxartSvg(model);
+};
+
+function getEffectivePhotoInfo(model, includeFallbackSvg = true) {
   const boxartPath = getBoxartPath(model);
   const altBoxartPath = boxartPath ? boxartPath.replace('boxart/BOX_', 'boxart/TAM') : '';
-  const svgFallback = generateBoxartSvg(model);
   const rawPhoto = (model.photo || '').trim();
   const isCustomPhoto = rawPhoto && !rawPhoto.startsWith('data:image/svg+xml') && !rawPhoto.startsWith('boxart/');
+  const needSvgNow = includeFallbackSvg || (!isCustomPhoto && !boxartPath);
+  const svgFallback = needSvgNow ? generateBoxartSvg(model) : '';
   const displayPhoto = isCustomPhoto ? rawPhoto : (boxartPath || svgFallback);
   const isBoxart = !isCustomPhoto;
   return { displayPhoto, boxartPath, altBoxartPath, svgFallback, isBoxart };
@@ -2266,7 +2317,7 @@ function getEffectivePhotoInfo(model) {
 
 function renderModelCard(model) {
   const progress = model.progress || 0;
-  const { displayPhoto, altBoxartPath, svgFallback, isBoxart } = getEffectivePhotoInfo(model);
+  const { displayPhoto, altBoxartPath, isBoxart } = getEffectivePhotoInfo(model, false);
 
   const photoHtml = `
     <div class="boxart-card-container">
@@ -2274,8 +2325,9 @@ function renderModelCard(model) {
            src="${displayPhoto}" 
            alt="${escHtml(model.name)}" 
            loading="lazy"
+           decoding="async"
            data-alt-src="${altBoxartPath}"
-           onerror="if(this.dataset.altSrc && this.src.indexOf(this.dataset.altSrc)===-1){var a=this.dataset.altSrc;this.dataset.altSrc='';this.src=a;}else{this.onerror=null;this.src='${svgFallback}';}">
+           onerror="window.handleBoxartError(this, ${Number(model.id) || 0})">
       ${isBoxart ? '<span class="boxart-stamp-pill">📦 SCATOLA KIT</span>' : ''}
     </div>`;
 
@@ -2315,20 +2367,81 @@ function renderModelCard(model) {
     </article>`;
 }
 
+function ensureGridLoadMoreBar() {
+  const grid = $('modelsGrid');
+  if (!grid || !grid.parentNode) return null;
+  let wrap = $('gridLoadMoreWrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'gridLoadMoreWrap';
+    wrap.style.cssText = 'display:none; justify-content:center; align-items:center; padding:1.25rem 0 1.5rem; width:100%;';
+    wrap.innerHTML = `<button type="button" id="btnGridLoadMore" class="arcade-action-btn" style="padding:10px 22px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;">▼ CARICA ALTRI MODELLI</button>`;
+    grid.insertAdjacentElement('afterend', wrap);
+    const btn = $('btnGridLoadMore');
+    if (btn) btn.addEventListener('click', () => appendNextGridPage());
+  }
+  return wrap;
+}
+
+function updateGridLoadMoreBar() {
+  const wrap = ensureGridLoadMoreBar();
+  if (!wrap) return;
+  const remaining = lastFilteredModels.length - renderedGridCount;
+  if (remaining <= 0) {
+    wrap.style.display = 'none';
+    if (gridScrollObserver) gridScrollObserver.disconnect();
+    return;
+  }
+  wrap.style.display = 'flex';
+  const btn = $('btnGridLoadMore');
+  if (btn) {
+    const nextBatch = Math.min(GRID_PAGE_SIZE, remaining);
+    btn.textContent = `▼ CARICA ALTRI ${nextBatch} (${renderedGridCount} / ${lastFilteredModels.length})`;
+  }
+  if ('IntersectionObserver' in window) {
+    if (!gridScrollObserver) {
+      gridScrollObserver = new IntersectionObserver(entries => {
+        if (entries.some(e => e.isIntersecting)) {
+          appendNextGridPage();
+        }
+      }, { rootMargin: '400px 0px' });
+    }
+    gridScrollObserver.disconnect();
+    gridScrollObserver.observe(wrap);
+  }
+}
+
+function appendNextGridPage() {
+  const grid = $('modelsGrid');
+  if (!grid || renderedGridCount >= lastFilteredModels.length) return;
+  const nextEnd = Math.min(renderedGridCount + GRID_PAGE_SIZE, lastFilteredModels.length);
+  const slice = lastFilteredModels.slice(renderedGridCount, nextEnd);
+  grid.insertAdjacentHTML('beforeend', slice.map(renderModelCard).join(''));
+  renderedGridCount = nextEnd;
+  updateGridLoadMoreBar();
+}
+
 function renderGrid() {
   const grid         = $('modelsGrid');
   const emptyState   = $('emptyStateContainer');
   const countTag     = $('activeFilterCountTag');
   const filtered     = getFilteredSorted();
 
+  lastFilteredModels = filtered;
+  renderedGridCount = 0;
+
   countTag.textContent = `${filtered.length} MODELL${filtered.length === 1 ? 'O' : 'I'} VISUALIZZAT${filtered.length === 1 ? 'O' : 'I'}`;
 
   if (filtered.length === 0) {
     grid.innerHTML = '';
     emptyState.style.display = '';
+    updateGridLoadMoreBar();
   } else {
     emptyState.style.display = 'none';
-    grid.innerHTML = filtered.map(renderModelCard).join('');
+    const initialEnd = Math.min(GRID_PAGE_SIZE, filtered.length);
+    grid.innerHTML = filtered.slice(0, initialEnd).map(renderModelCard).join('');
+    renderedGridCount = initialEnd;
+    updateGridLoadMoreBar();
   }
 }
 
@@ -3385,7 +3498,8 @@ function setupEventListeners() {
     showToast('✓ Filtri e ricerca azzerati', 'cyan');
   });
 
-  // Brand filter: campo di digitazione libera (filtra mentre scrivi o premendo Invio)
+  // Brand filter: campo di digitazione libera (filtra mentre scrivi con debounce 160ms o subito con Invio)
+  let brandInputTimer = null;
   const applyBrandFilter = (scrollToResults = false) => {
     const val = ($('brandFilterInput') ? $('brandFilterInput').value.trim() : '');
     filterBrand = val ? val : 'ALL';
@@ -3397,26 +3511,39 @@ function setupEventListeners() {
       $('modelsGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-  $('brandFilterInput')?.addEventListener('input', () => applyBrandFilter(false));
-  $('brandFilterInput')?.addEventListener('change', () => applyBrandFilter(false));
+  $('brandFilterInput')?.addEventListener('input', () => {
+    if (brandInputTimer) clearTimeout(brandInputTimer);
+    brandInputTimer = setTimeout(() => applyBrandFilter(false), 160);
+  });
+  $('brandFilterInput')?.addEventListener('change', () => {
+    if (brandInputTimer) clearTimeout(brandInputTimer);
+    applyBrandFilter(false);
+  });
   $('brandFilterInput')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      if (brandInputTimer) clearTimeout(brandInputTimer);
       applyBrandFilter(true);
       e.target.blur();
     }
   });
   $('btnClearBrandFilter')?.addEventListener('click', () => {
+    if (brandInputTimer) clearTimeout(brandInputTimer);
     filterBrand = 'ALL';
     if ($('brandFilterInput')) $('brandFilterInput').value = '';
     if ($('btnClearBrandFilter')) $('btnClearBrandFilter').style.display = 'none';
     renderGrid();
   });
 
-  // Search
+  // Search (debounce 160ms per digitazione fluida su >1300 modelli)
+  let searchInputTimer = null;
   $('searchInput')?.addEventListener('input', e => {
-    searchQuery = e.target.value.trim();
-    renderGrid();
+    const q = e.target.value.trim();
+    if (searchInputTimer) clearTimeout(searchInputTimer);
+    searchInputTimer = setTimeout(() => {
+      searchQuery = q;
+      renderGrid();
+    }, 160);
   });
 
   // Sort tag buttons
