@@ -981,6 +981,9 @@ const firebaseConfig = {
   appId: "1:142287121521:web:ad185370290b1a7d04bfd0"
 };
 
+const ADMIN_EMAIL = 'kenfalco170@gmail.com';
+const MAX_BETA_USERS = 5;
+
 let firestoreDb = null;
 let firebaseAuth = null;
 let currentCloudUser = null;
@@ -992,9 +995,160 @@ let isSyncing124Batch = false;
 let isSyncing148Batch = false;
 let isSyncing112Batch = false;
 let isSyncingExtra120Batch = false;
+let cachedBetaSlotCount = null;
+let lastReportedModelsCount = -1;
 
 function isAuthenticatedUser(user) {
   return Boolean(user && !user.isAnonymous && user.uid && user.email);
+}
+
+function isAdminUser(user) {
+  return Boolean(isAuthenticatedUser(user) && user.email.trim().toLowerCase() === ADMIN_EMAIL);
+}
+
+function formatShortDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '—';
+  }
+}
+
+function updateBetaSlotBanner(count) {
+  const banner = $('betaSlotBanner');
+  const txt = $('betaSlotText');
+  const st = $('betaSlotStatus');
+  const regBtn = $('btnAuthRegisterSubmit');
+  if (!banner || !txt || !st) return;
+
+  if (count === null || typeof count !== 'number') {
+    txt.textContent = `SLOT BETA TEST: -- / ${MAX_BETA_USERS} OCCUPATI`;
+    st.textContent = 'CONNESSO';
+    st.style.color = '#9BAEA6';
+    return;
+  }
+
+  const isFull = count >= MAX_BETA_USERS;
+  txt.textContent = `SLOT BETA TEST: ${count} / ${MAX_BETA_USERS} OCCUPATI`;
+  if (isFull) {
+    banner.style.background = 'rgba(239, 68, 68, 0.14)';
+    banner.style.borderColor = '#EF4444';
+    banner.style.color = '#FCA5A5';
+    st.textContent = 'LIMITE RAGGIUNTO';
+    st.style.color = '#FCA5A5';
+    if (regBtn) {
+      regBtn.disabled = true;
+      regBtn.style.opacity = '0.5';
+      regBtn.title = 'Limite massimo di 5 utenti test raggiunto';
+    }
+  } else {
+    banner.style.background = 'rgba(245, 158, 11, 0.10)';
+    banner.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+    banner.style.color = '#FCD34D';
+    st.textContent = `${MAX_BETA_USERS - count} DISPONIBILI`;
+    st.style.color = '#6EE7B7';
+    if (regBtn) {
+      regBtn.disabled = false;
+      regBtn.style.opacity = '';
+      regBtn.title = '';
+    }
+  }
+}
+
+async function fetchBetaSlotCount() {
+  if (!firestoreDb) return cachedBetaSlotCount;
+  try {
+    // Prova prima il documento pubblico leggero system/beta_stats
+    const statsDoc = await firestoreDb.collection('system').doc('beta_stats').get();
+    if (statsDoc.exists && typeof statsDoc.data().count === 'number') {
+      cachedBetaSlotCount = statsDoc.data().count;
+      updateBetaSlotBanner(cachedBetaSlotCount);
+      return cachedBetaSlotCount;
+    }
+  } catch {}
+  try {
+    // Fallback: conta direttamente i documenti in users (se consentito dalle regole)
+    const snap = await firestoreDb.collection('users').get();
+    cachedBetaSlotCount = snap.size;
+    updateBetaSlotBanner(cachedBetaSlotCount);
+    return cachedBetaSlotCount;
+  } catch {
+    updateBetaSlotBanner(cachedBetaSlotCount);
+    return cachedBetaSlotCount;
+  }
+}
+
+async function loadAdminUsersPanel() {
+  const section = $('adminUsersSection');
+  const titleEl = $('adminUsersTitle');
+  const listEl  = $('adminUsersList');
+  if (!section || !listEl || !isAdminUser(currentCloudUser) || !firestoreDb) return;
+
+  section.style.display = '';
+  listEl.innerHTML = '<span style="color:#9BAEA6;">Caricamento utenti da Firestore...</span>';
+
+  try {
+    const snap = await firestoreDb.collection('users').get();
+    const users = [];
+    snap.forEach(doc => {
+      const d = doc.data() || {};
+      users.push({
+        uid: doc.id,
+        email: d.email || '(senza email)',
+        displayName: d.displayName || (d.email ? d.email.split('@')[0] : doc.id.slice(0, 8)),
+        createdAt: d.createdAt || null,
+        lastLoginAt: d.lastLoginAt || null,
+        modelsCount: typeof d.modelsCount === 'number' ? d.modelsCount : null
+      });
+    });
+
+    users.sort((a, b) => (b.lastLoginAt || b.createdAt || '').localeCompare(a.lastLoginAt || a.createdAt || ''));
+
+    // Sincronizza anche il contatore pubblico system/beta_stats con il conteggio reale
+    cachedBetaSlotCount = users.length;
+    firestoreDb.collection('system').doc('beta_stats').set({
+      count: users.length,
+      maxSlots: MAX_BETA_USERS,
+      updatedAt: new Date().toISOString()
+    }, { merge: true }).catch(() => {});
+
+    if (titleEl) {
+      titleEl.textContent = `// ADMIN_TELEMETRY // UTENTI REGISTRATI (${users.length}/${MAX_BETA_USERS})`;
+    }
+
+    if (users.length === 0) {
+      listEl.innerHTML = '<span style="color:#9BAEA6;">Nessun utente registrato nella raccolta users.</span>';
+      return;
+    }
+
+    listEl.innerHTML = users.map(u => {
+      const isAdm = u.email.toLowerCase() === ADMIN_EMAIL;
+      const badge = isAdm
+        ? '<span style="background:#F59E0B;color:#121917;padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:800;margin-left:6px;">ADMIN</span>'
+        : '';
+      const kitsBadge = u.modelsCount !== null
+        ? `<span style="color:#6EE7B7;font-weight:700;">📦 ${u.modelsCount} kit</span>`
+        : '<span style="color:#647B72;">📦 —</span>';
+      const dateStr = u.createdAt
+        ? `Reg: ${formatShortDate(u.createdAt)} · Ultimo: ${formatShortDate(u.lastLoginAt)}`
+        : `Ultimo accesso: ${formatShortDate(u.lastLoginAt)}`;
+      return `
+        <div style="padding:7px 9px;background:#121917;border:1px solid ${isAdm ? 'rgba(245,158,11,0.45)' : '#283731'};border-radius:5px;display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="color:#F3F7F5;font-weight:700;">${escHtml(u.displayName)}${badge}</span>
+            ${kitsBadge}
+          </div>
+          <div style="color:#FCD34D;font-size:10px;word-break:break-all;">${escHtml(u.email)}</div>
+          <div style="color:#8CA299;font-size:9px;">${escHtml(dateStr)}</div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    console.warn('Errore lettura elenco utenti admin:', err);
+    listEl.innerHTML = '<span style="color:#FCA5A5;">⚠️ Impossibile leggere la raccolta <code>users</code>: verifica che le Regole Firestore consentano la lettura ad Admin (<code>kenfalco170@gmail.com</code>).</span>';
+  }
 }
 
 function setAppLocked(locked) {
@@ -1048,6 +1202,7 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     if (logoutSection) logoutSection.style.display = 'flex';
     if (loginSection) loginSection.style.display = 'none';
     if ($('authValuationSection')) $('authValuationSection').style.display = '';
+    if ($('adminUsersSection')) $('adminUsersSection').style.display = isAdminUser(user) ? '' : 'none';
   } else {
     if (badge) {
       badge.textContent = '🔒 ACCESSO RICHIESTO';
@@ -1067,6 +1222,7 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     if (logoutSection) logoutSection.style.display = 'none';
     if (loginSection) loginSection.style.display = 'flex';
     if ($('authValuationSection')) $('authValuationSection').style.display = 'none';
+    if ($('adminUsersSection')) $('adminUsersSection').style.display = 'none';
   }
 }
 
@@ -1075,6 +1231,11 @@ function openAuthModal(mandatory = false) {
   setAppLocked(mustLock);
   updateAuthUI(currentCloudUser);
   refreshStats();
+  if (isAdminUser(currentCloudUser)) {
+    loadAdminUsersPanel();
+  } else if (!isAuthenticatedUser(currentCloudUser)) {
+    fetchBetaSlotCount();
+  }
   const modal = $('authModalBackdrop');
   if (modal) {
     modal.style.display = '';
@@ -1162,9 +1323,58 @@ async function seedNewUserPersonalArchive() {
 }
 
 async function activateUserSession(user) {
+  // Controllo limite 5 utenti beta per nuovi profili (incluso primo accesso Google)
+  if (firestoreDb) {
+    try {
+      const userRef = firestoreDb.collection('users').doc(user.uid);
+      const existingDoc = await userRef.get();
+      const nowIso = new Date().toISOString();
+
+      if (!existingDoc.exists) {
+        const currentCount = await fetchBetaSlotCount();
+        if (!isAdminUser(user) && typeof currentCount === 'number' && currentCount >= MAX_BETA_USERS) {
+          if (firebaseAuth) {
+            try { await firebaseAuth.signOut(); } catch {}
+          }
+          deactivateUserSession('Limite massimo di 5 utenti test raggiunto.');
+          showToast('🚫 Limite massimo di 5 utenti test raggiunto', 'error');
+          return;
+        }
+        await userRef.set({
+          email: (user.email || '').trim().toLowerCase(),
+          displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Utente'),
+          createdAt: nowIso,
+          lastLoginAt: nowIso,
+          modelsCount: 0
+        }, { merge: true });
+
+        // Aggiorna il contatore pubblico degli slot occupati
+        const nextCount = typeof currentCount === 'number' ? currentCount + 1 : 1;
+        cachedBetaSlotCount = nextCount;
+        firestoreDb.collection('system').doc('beta_stats').set({
+          count: nextCount,
+          maxSlots: MAX_BETA_USERS,
+          updatedAt: nowIso
+        }, { merge: true }).catch(() => {});
+      } else {
+        const existingData = existingDoc.data() || {};
+        const patch = {
+          email: (user.email || '').trim().toLowerCase(),
+          displayName: user.displayName || existingData.displayName || (user.email ? user.email.split('@')[0] : 'Utente'),
+          lastLoginAt: nowIso
+        };
+        if (!existingData.createdAt) patch.createdAt = nowIso;
+        userRef.set(patch, { merge: true }).catch(() => {});
+      }
+    } catch (profErr) {
+      console.warn('Avviso profilo utente Firestore:', profErr);
+    }
+  }
+
   currentCloudUser = user;
   activeUserId = user.uid;
   isCloudSyncActive = true;
+  lastReportedModelsCount = -1;
 
   setAppLocked(false);
   updateAuthUI(user);
@@ -1182,21 +1392,15 @@ async function activateUserSession(user) {
     } catch { allModels = []; }
   }
 
-  // Salva/aggiorna profilo utente in Firestore
-  if (firestoreDb) {
-    firestoreDb.collection('users').doc(user.uid).set({
-      email: user.email,
-      displayName: user.displayName || user.email.split('@')[0],
-      lastLoginAt: new Date().toISOString()
-    }, { merge: true }).catch(() => {});
-  }
-
   renderBrandFilterButtons();
   updateFilterUI();
   renderGrid();
   refreshStats();
 
   startFirestoreListener();
+  if (isAdminUser(user)) {
+    loadAdminUsersPanel();
+  }
 }
 
 function deactivateUserSession(message = null) {
@@ -1230,6 +1434,7 @@ async function initFirestore() {
       firebase.initializeApp(firebaseConfig);
     }
     firestoreDb = firebase.firestore();
+    fetchBetaSlotCount();
 
     try {
       await firestoreDb.enablePersistence({ synchronizeTabs: true });
@@ -1644,6 +1849,15 @@ function startFirestoreListener() {
     renderGrid();
     refreshStats();
     isApplyingCloudSnapshot = false;
+
+    // Aggiorna contatore modellini nel profilo utente su Firestore (per pannello Admin)
+    if (firestoreDb && activeUserId && cloudModels.length !== lastReportedModelsCount) {
+      lastReportedModelsCount = cloudModels.length;
+      firestoreDb.collection('users').doc(activeUserId).set({
+        modelsCount: cloudModels.length,
+        lastLoginAt: new Date().toISOString()
+      }, { merge: true }).catch(() => {});
+    }
   }, async (err) => {
     console.warn('Firestore snapshot error:', err);
     if (err && err.code === 'permission-denied') {
@@ -3144,6 +3358,14 @@ function setupEventListeners() {
       return;
     }
 
+    // Controllo limite massimo di 5 utenti test prima della registrazione
+    const slotCount = await fetchBetaSlotCount();
+    if (email !== ADMIN_EMAIL && typeof slotCount === 'number' && slotCount >= MAX_BETA_USERS) {
+      updateAuthUI(null, 'Limite massimo di 5 utenti test raggiunto.');
+      showToast('🚫 Limite massimo di 5 utenti test raggiunto', 'error');
+      return;
+    }
+
     updateAuthUI(null, 'Creazione account e archivio personale in corso...', true);
 
     try {
@@ -3191,6 +3413,7 @@ function setupEventListeners() {
 
   $('btnAuthRegisterSubmit')?.addEventListener('click', handleRegisterUser);
   $('btnAuthLoginSubmit')?.addEventListener('click', handleLoginUser);
+  $('btnAdminRefreshUsers')?.addEventListener('click', loadAdminUsersPanel);
   $('authEmailForm')?.addEventListener('submit', e => {
     e.preventDefault();
     handleLoginUser();
