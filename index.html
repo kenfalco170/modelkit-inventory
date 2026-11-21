@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <meta name="theme-color" content="#121917">
@@ -76,6 +76,138 @@
         </div>
       </div>
     </header>
+
+    <!-- Cockpit Control Console: Filters, Search, and Switches (Top Position) -->
+    <section class="cockpit-control-deck">
+      <div class="control-deck-frame">
+        <div class="deck-title-strip">
+          <span>// FLIGHT_DECK_CONTROLS // FILTER MATRIX &amp; TELEMETRY QUERY</span>
+          <span class="deck-decor">AUX-CHANNEL-B</span>
+        </div>
+
+        <div class="deck-controls-compact">
+          <!-- Riga 1: 4 Menu a tendina compatti -->
+          <div class="deck-selects-row">
+            <div class="control-pod select-pod">
+              <label class="control-pod-label" for="statusFilterSelect">STATO MODELLINO</label>
+              <div class="telemetry-select-wrapper">
+                <select id="statusFilterSelect" class="telemetry-select">
+                  <option value="ALL">TUTTI</option>
+                  <option value="BACKLOG">📦 IN POSSESSO</option>
+                  <option value="IN_TRANSIT">🚚 ACQUISTATO IN ARRIVO</option>
+                  <option value="WIP">🔧 IN COSTRUZIONE</option>
+                  <option value="COMPLETED">🏆 COSTRUITO</option>
+                  <option value="WISHLIST">🔍 MANCANTE</option>
+                  <option value="NOT_INTERESTED">🚫 MANCANTE (NON INT.)</option>
+                  <option value="OTHER">📌 ALTRO</option>
+                </select>
+                <span class="select-indicator">▼</span>
+              </div>
+            </div>
+
+            <div class="control-pod select-pod">
+              <label class="control-pod-label" for="scaleFilterSelect">SCALA KIT</label>
+              <div class="telemetry-select-wrapper">
+                <select id="scaleFilterSelect" class="telemetry-select">
+                  <option value="ALL">TUTTE</option>
+                  <option value="1/20">🏎️ 1/20</option>
+                  <option value="1:24">🚗 1:24</option>
+                  <option value="1:12">🏍️ 1:12</option>
+                  <option value="1:18">1:18</option>
+                  <option value="1:43">1:43</option>
+                  <option value="1:35">1:35</option>
+                  <option value="1:48">✈️ 1:48</option>
+                  <option value="OTHER">ALTRE</option>
+                </select>
+                <span class="select-indicator">▼</span>
+              </div>
+            </div>
+
+            <div class="control-pod select-pod">
+              <label class="control-pod-label" for="categoryFilterSelect">CATEGORIA</label>
+              <div class="telemetry-select-wrapper">
+                <select id="categoryFilterSelect" class="telemetry-select">
+                  <option value="ALL">TUTTE</option>
+                  <option value="Sport Car">🚗 SPORT CAR</option>
+                  <option value="Auto Stradali">🚙 AUTO STRADALI</option>
+                  <option value="Formula 1">🏎️ FORMULA 1</option>
+                  <option value="Rally">🏁 RALLY</option>
+                  <option value="Moto">🏍️ MOTO</option>
+                  <option value="Aerei / Velivoli">✈️ AEREI / VELIVOLI</option>
+                  <option value="Mezzi Militari">🪖 MEZZI MILITARI</option>
+                  <option value="Navi / Sottomarini">⚓ NAVI / SOTTOMARINI</option>
+                  <option value="Sci-Fi / Gunpla">🤖 SCI-FI / GUNPLA</option>
+                  <option value="Diorami">🏛️ DIORAMI</option>
+                  <option value="Altro">ALTRO</option>
+                </select>
+                <span class="select-indicator">▼</span>
+              </div>
+            </div>
+
+            <div class="control-pod select-pod">
+              <label class="control-pod-label" for="sortFilterSelect">ORDINA PER</label>
+              <div class="telemetry-select-wrapper">
+                <select id="sortFilterSelect" class="telemetry-select">
+                  <option value="kitCode">🔢 N° KIT / CODICE</option>
+                  <option value="name">NOME A-Z</option>
+                  <option value="progress">AVANZAMENTO WIP</option>
+                  <option value="brand">MARCHIO</option>
+                  <option value="date">DATA AGGIUNTA</option>
+                  <option value="value">VALORE €</option>
+                </select>
+                <span class="select-indicator">▼</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Riga 2: Ricerca, Marca Kit e Reset Rapido -->
+          <div class="deck-inputs-row">
+            <div class="control-pod search-pod">
+              <label class="control-pod-label" for="searchInput">TELEMETRY SEARCH // QUERY</label>
+              <div class="telemetry-input-well">
+                <span class="prompt-symbol">&gt;</span>
+                <input type="text" id="searchInput" class="telemetry-search-field" placeholder="CERCA MODELLO, MARCHIO, CODICE..." autocomplete="off">
+                <span class="blinking-block">█</span>
+              </div>
+            </div>
+
+            <div class="control-pod brand-pod">
+              <label class="control-pod-label" for="brandFilterInput">MARCA KIT</label>
+              <div class="telemetry-input-well">
+                <span class="prompt-symbol">&gt;</span>
+                <input type="text" id="brandFilterInput" class="telemetry-search-field" placeholder="DIGITA LA MARCA (ES. TAMIYA, FUJIMI)..." autocomplete="off">
+                <button type="button" id="btnClearBrandFilter" class="btn-clear-brand" title="Mostra tutte le marche" style="display:none;">✕</button>
+              </div>
+            </div>
+
+            <div class="control-pod reset-pod">
+              <span class="control-pod-label">&nbsp;</span>
+              <button type="button" id="btnResetFilters" class="telemetry-reset-btn" title="Ripristina tutti i filtri e la ricerca">
+                ✕ RESET FILTRI
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons Bar -->
+        <div class="deck-sub-bar">
+          <div class="action-buttons-group" style="width:100%; justify-content:flex-end;">
+            <button class="arcade-action-btn" id="btnExportJson" title="Esporta file di salvataggio JSON">
+              <span class="btn-icon">💾</span> SALVA BACKUP
+            </button>
+            <label class="arcade-action-btn file-upload-label" title="Carica file di salvataggio JSON">
+              <span class="btn-icon">📂</span> IMPORTA
+              <input type="file" id="importJsonInput" accept=".json" style="display:none">
+            </label>
+            <button class="arcade-turbo-btn" id="btnHeaderNewModel">
+              <span class="turbo-led"></span>
+              + AGGIUNGI MODELLO
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
 
     <!-- Gauges & Telemetry Binnacle Row (12-Column Grid Layout) -->
     <section class="instrument-cluster-grid">
@@ -178,237 +310,6 @@
             <!-- Populated dynamically: 1:24 (4), 1:18 (2), etc. -->
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Cockpit Control Console: Filters, Search, and Switches -->
-    <section class="cockpit-control-deck">
-      <div class="control-deck-frame">
-        <div class="deck-title-strip">
-          <span>// FLIGHT_DECK_CONTROLS // FILTER MATRIX &amp; TELEMETRY QUERY</span>
-          <span class="deck-decor">AUX-CHANNEL-B</span>
-        </div>
-
-        <div class="deck-controls-row">
-          
-          <!-- Status Rocker Switch Matrix -->
-          <div class="control-pod">
-            <span class="control-pod-label">STATO MODELLINO</span>
-            <div class="rocker-matrix" id="statusFilterMatrix">
-              <button class="rocker-btn active" data-status="ALL">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">TUTTI</span>
-              </button>
-              <button class="rocker-btn" data-status="BACKLOG">
-                <span class="led-jewel blue-led"></span>
-                <span class="rocker-text">📦 IN POSSESSO</span>
-              </button>
-              <button class="rocker-btn" data-status="IN_TRANSIT">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">🚚 ACQUISTATO IN ARRIVO</span>
-              </button>
-              <button class="rocker-btn" data-status="WIP">
-                <span class="led-jewel amber-led"></span>
-                <span class="rocker-text">🔧 IN COSTRUZIONE</span>
-              </button>
-              <button class="rocker-btn" data-status="COMPLETED">
-                <span class="led-jewel magenta-led"></span>
-                <span class="rocker-text">🏆 COSTRUITO</span>
-              </button>
-              <button class="rocker-btn" data-status="WISHLIST">
-                <span class="led-jewel orange-led"></span>
-                <span class="rocker-text">🔍 MANCANTE</span>
-              </button>
-              <button class="rocker-btn" data-status="NOT_INTERESTED">
-                <span class="led-jewel red-led"></span>
-                <span class="rocker-text">🚫 MANCANTE (NON INT.)</span>
-              </button>
-              <button class="rocker-btn" data-status="OTHER">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">📌 ALTRO</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Scale Selector Filter Matrix (Tasti Rocker) -->
-          <div class="control-pod scale-pod">
-            <span class="control-pod-label">SCALA KIT</span>
-            <div class="rocker-matrix" id="scaleFilterMatrix">
-              <button class="rocker-btn active" data-scale="ALL">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">TUTTE</span>
-              </button>
-              <button class="rocker-btn" data-scale="1/20" style="border-left: 3px solid #004098;" title="Scala 1/20">
-                <span class="led-jewel blue-led"></span>
-                <span class="rocker-text">🏎️ 1/20</span>
-              </button>
-              <button class="rocker-btn" data-scale="1:24" title="1:24 Auto Stradali, Corsa &amp; Sport Car">
-                <span class="led-jewel amber-led"></span>
-                <span class="rocker-text">🚗 1:24</span>
-              </button>
-              <button class="rocker-btn" data-scale="1:12" title="1:12 Gran Turismo &amp; Moto">
-                <span class="led-jewel magenta-led"></span>
-                <span class="rocker-text">🏍️ 1:12</span>
-              </button>
-              <button class="rocker-btn" data-scale="1:18" title="1:18 Diecast &amp; Large">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">1:18</span>
-              </button>
-              <button class="rocker-btn" data-scale="1:43" title="1:43 Rally &amp; F1">
-                <span class="led-jewel orange-led"></span>
-                <span class="rocker-text">1:43</span>
-              </button>
-              <button class="rocker-btn" data-scale="1:35" title="1:35 Mezzi Militari">
-                <span class="led-jewel amber-led"></span>
-                <span class="rocker-text">1:35</span>
-              </button>
-              <button class="rocker-btn" data-scale="1:48" title="1:48 Aerei &amp; Velivoli">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">✈️ 1:48</span>
-              </button>
-              <button class="rocker-btn" data-scale="OTHER" title="Altre Scale (1:32, 1:72, Gunpla...)">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">ALTRE</span>
-              </button>
-            </div>
-            <!-- Fallback select nascosto per compatibilità interna -->
-            <select id="scaleFilterSelect" style="display:none;">
-              <option value="ALL">TUTTE LE SCALE</option>
-              <option value="1/20">1/20</option>
-              <option value="1:24">1:24 // Auto Stradali / Sport Car</option>
-              <option value="1:12">1:12 // Gran Turismo / Moto</option>
-              <option value="1:18">1:18 // Diecast / Large</option>
-              <option value="1:32">1:32 // Velivoli &amp; Slot</option>
-              <option value="1:35">1:35 // Mezzi Militari</option>
-              <option value="1:43">1:43 // Collezione Rally / F1</option>
-              <option value="1:48">1:48 // Velivoli WWII &amp; Jet</option>
-              <option value="1:72">1:72 // Velivoli &amp; Mezzi</option>
-              <option value="1:100">1:100 // Gunpla MG</option>
-              <option value="1:144">1:144 // Gunpla HG / RG</option>
-              <option value="OTHER">Altra Scala</option>
-            </select>
-          </div>
-
-          <!-- Category Selector Filter Matrix (Tasti Rocker) -->
-          <div class="control-pod category-pod">
-            <span class="control-pod-label">CATEGORIA</span>
-            <div class="rocker-matrix" id="categoryFilterMatrix">
-              <button class="rocker-btn active" data-category="ALL">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">TUTTE</span>
-              </button>
-              <button class="rocker-btn" data-category="Sport Car" title="Sport Car">
-                <span class="led-jewel amber-led"></span>
-                <span class="rocker-text">🚗 SPORT CAR</span>
-              </button>
-              <button class="rocker-btn" data-category="Auto Stradali" title="Auto Stradali">
-                <span class="led-jewel blue-led"></span>
-                <span class="rocker-text">🚙 AUTO STRADALI</span>
-              </button>
-              <button class="rocker-btn" data-category="Formula 1" title="Formula 1">
-                <span class="led-jewel red-led"></span>
-                <span class="rocker-text">🏎️ FORMULA 1</span>
-              </button>
-              <button class="rocker-btn" data-category="Rally" title="Rally">
-                <span class="led-jewel orange-led"></span>
-                <span class="rocker-text">🏁 RALLY</span>
-              </button>
-              <button class="rocker-btn" data-category="Moto" title="Moto">
-                <span class="led-jewel magenta-led"></span>
-                <span class="rocker-text">🏍️ MOTO</span>
-              </button>
-              <button class="rocker-btn" data-category="Aerei / Velivoli" title="Aerei / Velivoli">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">✈️ AEREI / VELIVOLI</span>
-              </button>
-              <button class="rocker-btn" data-category="Mezzi Militari" title="Mezzi Militari / Corazzati">
-                <span class="led-jewel orange-led"></span>
-                <span class="rocker-text">🪖 MEZZI MILITARI</span>
-              </button>
-              <button class="rocker-btn" data-category="Navi / Sottomarini" title="Navi / Sottomarini">
-                <span class="led-jewel blue-led"></span>
-                <span class="rocker-text">⚓ NAVI / SOTTOMARINI</span>
-              </button>
-              <button class="rocker-btn" data-category="Sci-Fi / Gunpla" title="Sci-Fi / Gunpla / Mecha">
-                <span class="led-jewel magenta-led"></span>
-                <span class="rocker-text">🤖 SCI-FI / GUNPLA</span>
-              </button>
-              <button class="rocker-btn" data-category="Diorami" title="Diorami">
-                <span class="led-jewel amber-led"></span>
-                <span class="rocker-text">🏛️ DIORAMI</span>
-              </button>
-              <button class="rocker-btn" data-category="Altro" title="Altro">
-                <span class="led-jewel cyan-led"></span>
-                <span class="rocker-text">ALTRO</span>
-              </button>
-            </div>
-            <!-- Fallback select nascosto per compatibilità interna -->
-            <select id="categoryFilterSelect" style="display:none;">
-              <option value="ALL">TUTTE LE CATEGORIE</option>
-              <option value="Sport Car">🚗 Sport Car</option>
-              <option value="Auto Stradali">Auto Stradali</option>
-              <option value="Formula 1">Formula 1</option>
-              <option value="Rally">Rally</option>
-              <option value="Moto">Moto</option>
-              <option value="Aerei / Velivoli">Aerei / Velivoli</option>
-              <option value="Mezzi Militari">Mezzi Militari / Corazzati</option>
-              <option value="Navi / Sottomarini">Navi / Sottomarini</option>
-              <option value="Sci-Fi / Gunpla">Sci-Fi / Gunpla / Mecha</option>
-              <option value="Diorami">Diorami</option>
-              <option value="Altro">Altro</option>
-            </select>
-          </div>
-
-          <!-- Search Telemetry Input with Blinking Block Cursor -->
-          <div class="control-pod search-pod">
-            <span class="control-pod-label">TELEMETRY SEARCH // QUERY</span>
-            <div class="telemetry-input-well">
-              <span class="prompt-symbol">&gt;</span>
-              <input type="text" id="searchInput" class="telemetry-search-field" placeholder="CERCA MODELLO, MARCHIO, CODICE..." autocomplete="off">
-              <span class="blinking-block">█</span>
-            </div>
-          </div>
-
-          <!-- Brand Filter Input (Digita la marca) -->
-          <div class="control-pod brand-pod">
-            <span class="control-pod-label">MARCA KIT</span>
-            <div class="telemetry-input-well">
-              <span class="prompt-symbol">&gt;</span>
-              <input type="text" id="brandFilterInput" class="telemetry-search-field" placeholder="DIGITA LA MARCA (ES. TAMIYA, FUJIMI)..." autocomplete="off">
-              <button type="button" id="btnClearBrandFilter" class="btn-clear-brand" title="Mostra tutte le marche" style="display:none;">✕</button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Fader & Quick Order Bar -->
-        <div class="deck-sub-bar">
-          <div class="sorting-controls">
-            <span class="label-tech">ORDINA PER:</span>
-            <button class="sort-tag-btn active" data-sort="kitCode">🔢 N° KIT / CODICE</button>
-            <button class="sort-tag-btn" data-sort="name">NOME A-Z</button>
-            <button class="sort-tag-btn" data-sort="progress">AVANZAMENTO WIP</button>
-            <button class="sort-tag-btn" data-sort="brand">MARCHIO</button>
-            <button class="sort-tag-btn" data-sort="date">DATA AGGIUNTA</button>
-            <button class="sort-tag-btn" data-sort="value">VALORE €</button>
-          </div>
-
-          <!-- View Mode Toggles & Action Buttons -->
-          <div class="action-buttons-group">
-            <button class="arcade-action-btn" id="btnExportJson" title="Esporta file di salvataggio JSON">
-              <span class="btn-icon">💾</span> SALVA BACKUP
-            </button>
-            <label class="arcade-action-btn file-upload-label" title="Carica file di salvataggio JSON">
-              <span class="btn-icon">📂</span> IMPORTA
-              <input type="file" id="importJsonInput" accept=".json" style="display:none">
-            </label>
-            <button class="arcade-turbo-btn" id="btnHeaderNewModel">
-              <span class="turbo-led"></span>
-              + AGGIUNGI MODELLO
-            </button>
-          </div>
-        </div>
-
       </div>
     </section>
 
@@ -945,7 +846,7 @@
   <script src="tamiya148.js?v=1"></script>
   <script src="tamiya112.js?v=1"></script>
   <script src="extra120.js?v=1"></script>
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

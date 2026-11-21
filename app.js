@@ -2789,7 +2789,12 @@ function setupEventListeners() {
     $('formProgressDisplay').textContent = e.target.value + '%';
   });
 
-  // Status filter matrix (rocker buttons)
+  // Status filter (select & legacy matrix fallback)
+  $('statusFilterSelect')?.addEventListener('change', e => {
+    filterStatus = e.target.value;
+    updateFilterUI();
+    renderGrid();
+  });
   $('statusFilterMatrix')?.addEventListener('click', e => {
     const btn = e.target.closest('.rocker-btn');
     if (!btn) return;
@@ -2798,28 +2803,54 @@ function setupEventListeners() {
     renderGrid();
   });
 
-  // Scale filter matrix (rocker buttons)
-  $('scaleFilterMatrix')?.addEventListener('click', e => {
-    const btn = e.target.closest('.rocker-btn');
-    if (!btn) return;
-    filterScale = btn.dataset.scale;
-    if ($('scaleFilterSelect')) $('scaleFilterSelect').value = filterScale;
-    updateFilterUI();
-    renderGrid();
-  });
-
-  // Scale filter (select fallback)
+  // Scale filter (select & legacy matrix fallback)
   $('scaleFilterSelect')?.addEventListener('change', e => {
     filterScale = e.target.value;
     updateFilterUI();
     renderGrid();
   });
+  $('scaleFilterMatrix')?.addEventListener('click', e => {
+    const btn = e.target.closest('.rocker-btn');
+    if (!btn) return;
+    filterScale = btn.dataset.scale;
+    updateFilterUI();
+    renderGrid();
+  });
 
-  // Category filter
-  $('categoryFilterMatrix')?.addEventListener('click', e => { const btn = e.target.closest('.rocker-btn'); if (!btn) return; filterCategory = btn.dataset.category; if ($('categoryFilterSelect')) $('categoryFilterSelect').value = filterCategory; updateFilterUI(); renderGrid(); });
+  // Category filter (select & legacy matrix fallback)
   $('categoryFilterSelect')?.addEventListener('change', e => {
     filterCategory = e.target.value;
+    updateFilterUI();
     renderGrid();
+  });
+  $('categoryFilterMatrix')?.addEventListener('click', e => {
+    const btn = e.target.closest('.rocker-btn');
+    if (!btn) return;
+    filterCategory = btn.dataset.category;
+    updateFilterUI();
+    renderGrid();
+  });
+
+  // Sort filter (select & legacy buttons fallback)
+  $('sortFilterSelect')?.addEventListener('change', e => {
+    sortKey = e.target.value;
+    updateFilterUI();
+    renderGrid();
+  });
+
+  // Pulsante Reset Rapido Filtri
+  $('btnResetFilters')?.addEventListener('click', () => {
+    filterStatus   = 'ALL';
+    filterScale    = 'ALL';
+    filterCategory = 'ALL';
+    filterBrand    = 'ALL';
+    searchQuery    = '';
+    sortKey        = 'kitCode';
+    if ($('searchInput')) $('searchInput').value = '';
+    if ($('brandFilterInput')) $('brandFilterInput').value = '';
+    updateFilterUI();
+    renderGrid();
+    showToast('✓ Filtri e ricerca azzerati', 'cyan');
   });
 
   // Brand filter: campo di digitazione libera (filtra mentre scrivi o premendo Invio)
@@ -3180,6 +3211,27 @@ function setupEventListeners() {
 }
 
 function updateFilterUI() {
+  const statusSel = $('statusFilterSelect');
+  if (statusSel) {
+    statusSel.value = filterStatus;
+    statusSel.classList.toggle('filter-active', filterStatus !== 'ALL');
+  }
+  const scaleSel = $('scaleFilterSelect');
+  if (scaleSel) {
+    scaleSel.value = filterScale;
+    scaleSel.classList.toggle('filter-active', filterScale !== 'ALL');
+  }
+  const catSel = $('categoryFilterSelect');
+  if (catSel) {
+    catSel.value = filterCategory;
+    catSel.classList.toggle('filter-active', filterCategory !== 'ALL');
+  }
+  const sortSel = $('sortFilterSelect');
+  if (sortSel) {
+    sortSel.value = sortKey;
+    sortSel.classList.toggle('filter-active', sortKey !== 'kitCode');
+  }
+
   document.querySelectorAll('#statusFilterMatrix .rocker-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.status === filterStatus);
   });

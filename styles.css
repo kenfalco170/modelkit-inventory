@@ -673,35 +673,138 @@ body.app-auth-locked .cockpit-chassis {
 .orange-led  { background: #FB923C; }
 .red-led     { background: #EF4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.55); }
 
-/* Select Box */
-.telemetry-select-wrapper { position: relative; }
+/* Select Box & Compact Filter Deck */
+.deck-controls-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px var(--gutter);
+}
+.deck-selects-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+.deck-inputs-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+.select-pod, .search-pod, .brand-pod, .reset-pod {
+  min-width: 0;
+}
+.telemetry-select-wrapper {
+  position: relative;
+  width: 100%;
+}
 .telemetry-select {
   appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
   background: #141C19;
   border: 1px solid #2D3E38;
   border-radius: var(--r-base);
   color: #E8EFEA;
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 8px 28px 8px 10px;
+  padding: 9px 28px 9px 10px;
   cursor: pointer;
-  min-width: 180px;
+  min-width: 0;
   box-shadow: var(--inset-well);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.telemetry-select:focus { outline: none; border-color: #F59E0B; }
+.telemetry-select:hover {
+  border-color: #F59E0B;
+  background: #1B2723;
+}
+.telemetry-select:focus {
+  outline: none;
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22);
+}
+.telemetry-select.filter-active {
+  border-color: #F59E0B;
+  color: #FCD34D;
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.22);
+}
+.telemetry-select option {
+  background: #141C19;
+  color: #E8EFEA;
+}
 .select-indicator {
-  position: absolute; right: 8px; top: 50%;
+  position: absolute; right: 10px; top: 50%;
   transform: translateY(-50%);
   color: #F59E0B; font-size: 9px; pointer-events: none;
 }
 
+/* Pulsante Reset Rapido Filtri */
+.telemetry-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid #EF4444;
+  border-radius: var(--r-base);
+  color: #FCA5A5;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.18);
+}
+.telemetry-reset-btn:hover {
+  background: #EF4444;
+  color: #121917;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+  transform: translateY(-1px);
+}
+.telemetry-reset-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 960px) {
+  .deck-selects-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .deck-inputs-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reset-pod {
+    grid-column: 1 / -1;
+  }
+  .reset-pod .control-pod-label {
+    display: none;
+  }
+  .telemetry-reset-btn {
+    width: 100%;
+  }
+}
+@media (max-width: 560px) {
+  .deck-selects-row,
+  .deck-inputs-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Search Input */
-.search-pod { flex: 1; min-width: 280px; }
+.search-pod { flex: 1; min-width: 0; }
 .telemetry-input-well {
   display: flex;
   align-items: center;
+  min-height: 36px;
   background: #111816;
   border: 1px solid #2E3F38;
   border-radius: var(--r-base);
