@@ -2980,11 +2980,6 @@ function setupEventListeners() {
   // Import JSON
   $('importJsonInput')?.addEventListener('change', e => importJSON(e.target.files[0]));
 
-  // CRT toggle
-  $('crtToggle')?.addEventListener('change', e => {
-    document.body.classList.toggle('crt-enabled', e.target.checked);
-  });
-
   // Boxart Modal handlers
   $('btnBoxartClose')?.addEventListener('click', closeBoxartModal);
   $('btnBoxartDone')?.addEventListener('click', closeBoxartModal);

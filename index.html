@@ -8,51 +8,31 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <meta name="theme-color" content="#121917">
 </head>
 <body class="">
-  <!-- CRT Scanline & Phosphor Overlay -->
-  <div class="crt-overlay" id="crtOverlay"></div>
-  <div class="scanlines"></div>
+  <!-- Sticky Top Utility Bar (sempre visibile durante lo scorrimento) -->
+  <nav class="sticky-top-bar" aria-label="Barra account e telemetria">
+    <div class="strip-left">
+      <span class="vfd-indicator active-dot"></span>
+      <span class="telemetry-label">// STATIC_MODEL_KIT_INVENTORY</span>
+      <span class="vfd-divider">|</span>
+      <span class="telemetry-sub" id="clockTelemetry">TIME: --:--:--</span>
+    </div>
+    <div class="strip-right">
+      <button type="button" class="user-account-sticky-btn" id="btnHeaderUsers" title="Gestisci account e visualizza Investment &amp; Value">👤 UTENTI / LOGIN</button>
+    </div>
+  </nav>
 
   <!-- Main Cockpit Application Frame -->
   <div class="cockpit-chassis">
 
     <!-- Top Instrument Binnacle Header -->
     <header class="binnacle-header">
-      <div class="header-utility-strip">
-        <div class="strip-left">
-          <span class="vfd-indicator active-dot"></span>
-          <span class="telemetry-label">// STATIC_MODEL_KIT_INVENTORY.SYS // TELEMETRY v2.6</span>
-          <span class="vfd-divider">|</span>
-          <span class="telemetry-sub" id="clockTelemetry">TIME: --:--:--</span>
-        </div>
-        <div class="strip-right">
-          <!-- CRT Toggle Switch -->
-          <div class="header-toggle-group">
-            <span class="toggle-caption">CRT FX</span>
-            <label class="rocker-switch-mini" title="Attiva/Disattiva effetto CRT Scanlines">
-              <input type="checkbox" id="crtToggle">
-              <span class="rocker-slider-mini"></span>
-            </label>
-          </div>
-          <!-- Audio Synthesizer Toggle -->
-          <div class="header-toggle-group">
-            <span class="toggle-caption">SYNTH SFX</span>
-            <label class="rocker-switch-mini" title="Effetti sonori Synthwave & Relè">
-              <input type="checkbox" id="audioToggle" checked>
-              <span class="rocker-slider-mini"></span>
-            </label>
-          </div>
-          <button type="button" class="status-badge-glow" id="btnHeaderUsers" style="cursor:pointer; background:#F59E0B; color:#121917; border-color:#D97706;" title="Registra o cambia utente di test (Email e Password)">👤 UTENTI / LOGIN</button>
-          <span class="status-badge-glow" id="dbStatusBadge" style="cursor:pointer;" title="Clicca per gestire l'accesso Cloud Firebase">DB: ONLINE</span>
-        </div>
-      </div>
-
-      <!-- Main Header Title & Cassette Deck Bar -->
+      <!-- Main Header Title Bar -->
       <div class="cockpit-title-bar">
         <div class="branding-group">
           <div class="brand-crest">
@@ -784,7 +764,7 @@
   <script src="tamiya148.js?v=1"></script>
   <script src="tamiya112.js?v=1"></script>
   <script src="extra120.js?v=1"></script>
-  <script src="app.js?v=34"></script>
+  <script src="app.js?v=35"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
