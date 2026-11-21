@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chivo:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <meta name="theme-color" content="#121917">
@@ -179,7 +179,7 @@
               <span class="btn-icon">📂</span> IMPORTA
               <input type="file" id="importJsonInput" accept=".json" style="display:none">
             </label>
-            <button class="arcade-turbo-btn" id="btnHeaderNewModel">
+            <button class="arcade-turbo-btn admin-only" id="btnHeaderNewModel">
               <span class="turbo-led"></span>
               + AGGIUNGI MODELLO
             </button>
@@ -212,8 +212,8 @@
           <h3 class="empty-title">NESSUN MODELLINO TROVATO IN QUESTO SETTORE</h3>
           <p class="empty-desc">Nessun kit corrisponde ai parametri di ricerca o ai filtri attuali. Modifica i parametri oppure registra un nuovo modellino nella flotta.</p>
           <div class="empty-actions">
-            <button class="arcade-turbo-btn" id="btnEmptyAddNew">+ REGISTRA PRIMO MODELLO</button>
-            <button class="arcade-action-btn" id="btnEmptyLoadSeeds">CARICA MODELLI ESEMPIO</button>
+            <button class="arcade-turbo-btn admin-only" id="btnEmptyAddNew">+ REGISTRA PRIMO MODELLO</button>
+            <button class="arcade-action-btn admin-only" id="btnEmptyLoadSeeds">CARICA MODELLI ESEMPIO</button>
           </div>
         </div>
       </div>
@@ -397,12 +397,19 @@
           <!-- Colonna Destra: Foto, Colori, Note e Valutazione Economica -->
           <div class="form-column">
             
-            <!-- Foto del Modello presente sulla lista -->
+            <!-- Foto del Modello presente sulla lista (Gestione riservata all'Admin) -->
             <div class="form-group">
-              <label class="form-label">IMMAGINE / FOTO DEL MODELLO</label>
+              <label class="form-label">IMMAGINE / FOTO DEL MODELLO (SOLO ADMIN)</label>
               <div class="photo-upload-binnacle" id="photoDropArea" style="border-style:solid;">
                 <div class="photo-preview-well" id="photoPreviewContainer" style="background:#ffffff; padding:6px;">
                   <img id="formPhotoPreview" src="" alt="Foto del Modello" style="display: block; width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div class="admin-only" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; width:100%;">
+                  <button type="button" class="arcade-turbo-btn" id="btnCameraPhoto" style="flex:1; justify-content:center; padding:6px 10px; font-size:10px;">📷 SCATTA FOTO</button>
+                  <button type="button" class="arcade-action-btn" id="btnChoosePhoto" style="flex:1; justify-content:center; padding:6px 10px; font-size:10px;">📁 GALLERIA</button>
+                  <button type="button" class="arcade-action-btn card-btn-danger" id="btnRemovePhoto" style="display:none; padding:6px 10px; font-size:10px;">✕</button>
+                  <input type="file" id="formPhotoCamera" accept="image/*" capture="environment" style="display:none;">
+                  <input type="file" id="formPhotoFile" accept="image/*" style="display:none;">
                 </div>
               </div>
             </div>
@@ -606,18 +613,24 @@
           </div>
         </div>
 
-        <!-- Sezione 3: Carica Foto Scatola da Computer / Dispositivo -->
+        <!-- Sezione 3: Scatta o Carica Foto Scatola (Solo Admin) -->
         <div class="boxart-section">
           <div class="boxart-section-header">
             <span class="boxart-section-num">03</span>
-            <h4>CARICA FOTO DELLA SCATOLA DAL TUO DISPOSITIVO</h4>
-            <span class="boxart-section-desc">Se hai scattato una foto alla scatola del tuo kit, caricala direttamente:</span>
+            <h4>SCATTA O CARICA FOTO DELLA SCATOLA (SOLO ADMIN)</h4>
+            <span class="boxart-section-desc">Compressione automatica ottimizzata (max 1000px WebP/JPEG):</span>
           </div>
-          <div class="boxart-upload-row">
-            <label class="boxart-upload-label" for="boxartFileInput">
-              <span class="upload-icon">📷</span>
-              <span>SCEGLI O TRASCINA LA FOTO DELLA SCATOLA</span>
-              <small>Supporta JPG, PNG, WebP (salvata istantaneamente nel modellino)</small>
+          <div class="boxart-upload-row" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <label class="boxart-upload-label" for="boxartCameraInput" style="flex:1; min-width:180px; border-color:#F59E0B;">
+              <span class="upload-icon">📸</span>
+              <span>SCATTA FOTO CON FOTOCAMERA</span>
+              <small>Apre la fotocamera posteriore del telefono</small>
+            </label>
+            <input type="file" id="boxartCameraInput" accept="image/*" capture="environment" style="display:none;">
+            <label class="boxart-upload-label" for="boxartFileInput" style="flex:1; min-width:180px;">
+              <span class="upload-icon">📁</span>
+              <span>CARICA DA GALLERIA / PC</span>
+              <small>Supporta JPG, PNG, WebP (max 1000px)</small>
             </label>
             <input type="file" id="boxartFileInput" accept="image/*" style="display:none;">
           </div>
@@ -789,7 +802,7 @@
   <script src="tamiya148.js?v=1"></script>
   <script src="tamiya112.js?v=1"></script>
   <script src="extra120.js?v=1"></script>
-  <script src="app.js?v=37"></script>
+  <script src="app.js?v=38"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -128,6 +128,14 @@ body {
 ::-webkit-scrollbar-thumb { background: #33453E; border-radius: var(--r-full); }
 ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
 
+/* ─── CONTROLLI RISERVATI SOLO ALL'ADMIN ────────────────────────────────── */
+.admin-only {
+  display: none !important;
+}
+body.is-admin .admin-only {
+  display: inline-flex !important;
+}
+
 /* ─── STICKY TOP BAR & USER ACCOUNT BUTTON ──────────────────────────────── */
 .sticky-top-bar {
   position: sticky;

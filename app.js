@@ -1162,6 +1162,7 @@ function setAppLocked(locked) {
 }
 
 function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
+  document.body.classList.toggle('is-admin', isAdminUser(user));
   const badge = $('dbStatusBadge');
   const usersBtn = $('btnHeaderUsers');
   const storageDisplay = $('storageTypeDisplay');
@@ -2188,8 +2189,12 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// ─── MODAL: ADD / EDIT ───────────────────────────────────────────────────────
+// ─── MODAL: ADD / EDIT (SOLO ADMIN) ──────────────────────────────────────────
 function openNewModelModal() {
+  if (!isAdminUser(currentCloudUser)) {
+    showToast('🔒 Funzione riservata esclusivamente all\'Admin', 'error');
+    return;
+  }
   editingId           = null;
   currentPhotoDataUrl = null;
   $('modelForm').reset();
@@ -2198,6 +2203,7 @@ function openNewModelModal() {
   $('formProgressDisplay').textContent = '0%';
   if ($('formDecalsOriginal')) $('formDecalsOriginal').value = '';
   if ($('formDecalsAftermarket')) $('formDecalsAftermarket').value = '';
+  if ($('btnRemovePhoto')) $('btnRemovePhoto').style.display = 'none';
   document.querySelectorAll('input[name="formStatus"]').forEach(r => {
     r.checked = (r.value === 'WISHLIST');
   });
@@ -2209,8 +2215,13 @@ function openNewModelModal() {
 }
 
 function openEditModelModal(model) {
+  if (!isAdminUser(currentCloudUser)) {
+    showToast('🔒 Solo l\'Admin può modificare le schede catalogo', 'error');
+    return;
+  }
   editingId           = model.id;
   currentPhotoDataUrl = model.photo || null;
+  if ($('btnRemovePhoto')) $('btnRemovePhoto').style.display = currentPhotoDataUrl ? '' : 'none';
   $('formModelId').value        = model.id;
   $('formName').value           = model.name || '';
   $('formBrand').value          = model.brand || '';
@@ -2281,8 +2292,47 @@ function openDetailModal(model) {
 
   const valueDisplay = m => (m > 0 ? '€ ' + parseFloat(m).toFixed(2) : '—');
 
+  const isAdmin = isAdminUser(currentCloudUser);
+
+  const personalUpdatePanel = !isAdmin ? `
+    <div style="background:#141C19; border:1px solid #2E3F38; border-left:3px solid #F59E0B; border-radius:6px; padding:12px 14px; display:flex; flex-direction:column; gap:10px;">
+      <span style="font-family:var(--font-mono); font-size:10px; font-weight:800; color:#F59E0B; letter-spacing:0.08em;">// AGGIORNA IL TUO STATO PERSONALE</span>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="control-pod">
+          <label class="control-pod-label" for="userQuickStatus">STATO MODELLINO</label>
+          <div class="telemetry-select-wrapper">
+            <select id="userQuickStatus" class="telemetry-select">
+              <option value="BACKLOG" ${model.status === 'BACKLOG' ? 'selected' : ''}>📦 IN POSSESSO</option>
+              <option value="IN_TRANSIT" ${model.status === 'IN_TRANSIT' ? 'selected' : ''}>🚚 ACQUISTATO IN ARRIVO</option>
+              <option value="WIP" ${model.status === 'WIP' ? 'selected' : ''}>🔧 IN COSTRUZIONE</option>
+              <option value="COMPLETED" ${model.status === 'COMPLETED' ? 'selected' : ''}>🏆 COSTRUITO</option>
+              <option value="WISHLIST" ${model.status === 'WISHLIST' ? 'selected' : ''}>🔍 MANCANTE</option>
+              <option value="NOT_INTERESTED" ${model.status === 'NOT_INTERESTED' ? 'selected' : ''}>🚫 MANCANTE (NON INT.)</option>
+              <option value="OTHER" ${model.status === 'OTHER' ? 'selected' : ''}>📌 ALTRO</option>
+            </select>
+            <span class="select-indicator">▼</span>
+          </div>
+        </div>
+        <div class="control-pod">
+          <label class="control-pod-label" for="userQuickProgress">AVANZAMENTO WIP: <strong id="userQuickProgressVal" style="color:#FCD34D;">${model.progress || 0}%</strong></label>
+          <input type="range" id="userQuickProgress" min="0" max="100" step="5" value="${model.progress || 0}" style="width:100%; accent-color:#F59E0B; margin-top:8px;">
+        </div>
+      </div>
+      <div class="control-pod">
+        <label class="control-pod-label" for="userQuickNotes">NOTE PERSONALI</label>
+        <textarea id="userQuickNotes" rows="2" class="cockpit-textarea" style="background:#111816; border:1px solid #2E3F38; border-radius:4px; padding:8px; color:#E8EFEA; font-family:var(--font-mono); font-size:11px;" placeholder="Aggiungi note personali sul tuo kit...">${escHtml(model.notes || '')}</textarea>
+      </div>
+      <button type="button" class="arcade-turbo-btn" id="btnUserQuickSave" style="justify-content:center;">💾 SALVA STATO PERSONALE</button>
+    </div>` : '';
+
+  const adminActionsHtml = isAdmin ? `
+      <button class="arcade-action-btn" id="detailEditBtn">✏️ MODIFICA</button>
+      <button class="arcade-action-btn" id="detailPhotoBtn" style="border-color:#F59E0B; color:#FCD34D;">📷 SCATTA / CARICA FOTO</button>
+      <button class="arcade-action-btn card-btn-danger" id="detailDeleteBtn">🗑️ ELIMINA</button>` : '';
+
   c.innerHTML = `
     ${photoSection}
+    ${personalUpdatePanel}
     <div class="detail-info-grid">
       <div class="detail-info-block" style="grid-column: 1 / -1;"><span class="detail-info-label">DESCRIZIONE E CODICE KIT</span><span class="detail-info-value" style="font-size:16px; color:#F3F7F5; font-weight:800;">${escHtml(model.name)}${model.kitCode ? ` — ${escHtml(model.kitCode)}` : ''}</span></div>
       <div class="detail-info-block"><span class="detail-info-label">MODELLO</span><span class="detail-info-value">${escHtml(model.name)}</span></div>
@@ -2316,23 +2366,63 @@ function openDetailModal(model) {
       <div class="detail-notes-block">${escHtml(model.notes)}</div>
     </div>` : ''}
     <div class="detail-actions-row">
-      <button class="arcade-action-btn" id="detailEditBtn">✏️ MODIFICA</button>
+      ${adminActionsHtml}
       <button class="arcade-turbo-btn" onclick="document.getElementById('detailModalBackdrop').style.display='none';document.body.style.overflow='';">✓ CHIUDI</button>
     </div>`;
 
   $('detailModalBackdrop').style.display = '';
   document.body.style.overflow = 'hidden';
 
-  // Wire edit button inside detail
-  $('detailEditBtn')?.addEventListener('click', () => {
-    closeModal('detailModalBackdrop');
-    openEditModelModal(model);
-  });
+  if (isAdmin) {
+    $('detailEditBtn')?.addEventListener('click', () => {
+      closeModal('detailModalBackdrop');
+      openEditModelModal(model);
+    });
+    $('detailPhotoBtn')?.addEventListener('click', () => {
+      openBoxartModal(model.id);
+    });
+    $('detailDeleteBtn')?.addEventListener('click', async () => {
+      closeModal('detailModalBackdrop');
+      await deleteModel(model.id);
+    });
+  } else {
+    $('userQuickProgress')?.addEventListener('input', e => {
+      if ($('userQuickProgressVal')) $('userQuickProgressVal').textContent = e.target.value + '%';
+    });
+    $('btnUserQuickSave')?.addEventListener('click', async () => {
+      const newStatus   = $('userQuickStatus') ? $('userQuickStatus').value : model.status;
+      let   newProgress = $('userQuickProgress') ? (parseInt($('userQuickProgress').value, 10) || 0) : (model.progress || 0);
+      const newNotes    = $('userQuickNotes') ? $('userQuickNotes').value.trim() : (model.notes || '');
+      if (newStatus === 'COMPLETED') newProgress = 100;
+      const updated = {
+        ...model,
+        status: newStatus,
+        progress: newProgress,
+        notes: newNotes,
+        updatedAt: new Date().toISOString()
+      };
+      try {
+        await saveModel(updated);
+        allModels = await getAllModels();
+        renderGrid();
+        refreshStats();
+        closeModal('detailModalBackdrop');
+        showToast('✓ Stato personale salvato!', 'cyan');
+      } catch (err) {
+        console.error('Errore salvataggio stato personale:', err);
+        showToast('Errore nel salvataggio!', 'error');
+      }
+    });
+  }
 }
 
-// ─── FORM SUBMIT ─────────────────────────────────────────────────────────────
+// ─── FORM SUBMIT (SOLO ADMIN) ────────────────────────────────────────────────
 async function handleFormSubmit(e) {
   e.preventDefault();
+  if (!isAdminUser(currentCloudUser)) {
+    showToast('🔒 Solo l\'Admin può salvare o creare schede catalogo', 'error');
+    return;
+  }
 
   const statusRadio = document.querySelector('input[name="formStatus"]:checked');
   const model = {
@@ -2379,8 +2469,12 @@ async function handleFormSubmit(e) {
   }
 }
 
-// ─── DELETE ──────────────────────────────────────────────────────────────────
+// ─── DELETE (SOLO ADMIN) ─────────────────────────────────────────────────────
 async function deleteModel(id) {
+  if (!isAdminUser(currentCloudUser)) {
+    showToast('🔒 Solo l\'Admin può eliminare modellini', 'error');
+    return;
+  }
   const model = allModels.find(m => m.id === id);
   if (!model) return;
   if (!confirm(`Eliminare "${model.name}" dall'inventario? Questa operazione non è reversibile.`)) return;
@@ -2397,18 +2491,62 @@ async function deleteModel(id) {
   }
 }
 
-// ─── PHOTO HANDLING ──────────────────────────────────────────────────────────
-function handlePhotoFile(file) {
+// ─── COMPRESSIONE & PHOTO HANDLING (SOLO ADMIN, MAX 1000PX WEBP/JPEG) ───────
+function compressImageFile(file, maxDim = 1000, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Errore lettura file immagine'));
+    reader.onload = ev => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Immagine non valida'));
+      img.onload = () => {
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w >= h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        let dataUrl = canvas.toDataURL('image/webp', quality);
+        if (!dataUrl || !dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        resolve(dataUrl);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handlePhotoFile(file) {
+  if (!isAdminUser(currentCloudUser)) {
+    showToast('🔒 Solo l\'Admin può caricare o scattare foto', 'error');
+    return;
+  }
   if (!file || !file.type.startsWith('image/')) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    currentPhotoDataUrl              = e.target.result;
-    $('formPhotoPreview').src        = currentPhotoDataUrl;
-    $('formPhotoPreview').style.display = 'block';
-    $('photoPlaceholder').style.display = 'none';
-    $('btnRemovePhoto').style.display   = '';
-  };
-  reader.readAsDataURL(file);
+  try {
+    currentPhotoDataUrl = await compressImageFile(file, 1000, 0.82);
+    if ($('formPhotoPreview')) {
+      $('formPhotoPreview').src = currentPhotoDataUrl;
+      $('formPhotoPreview').style.display = 'block';
+    }
+    if ($('photoPlaceholder')) $('photoPlaceholder').style.display = 'none';
+    if ($('btnRemovePhoto'))   $('btnRemovePhoto').style.display   = '';
+    showToast('📷 Foto ottimizzata (max 1000px) pronta!', 'cyan');
+  } catch (err) {
+    console.error('Errore compressione foto:', err);
+    showToast('Errore elaborazione immagine', 'error');
+  }
 }
 
 // ─── EXPORT / IMPORT JSON ────────────────────────────────────────────────────
@@ -2667,6 +2805,10 @@ function getBoxartPath(model) {
 let activeBoxartModel = null;
 
 function openBoxartModal(modelId) {
+  if (!isAdminUser(currentCloudUser)) {
+    showToast('🔒 Solo l\'Admin può gestire le foto e le scatole', 'error');
+    return;
+  }
   const model = allModels.find(m => m.id === modelId);
   if (!model) return;
   activeBoxartModel = model;
@@ -3160,16 +3302,18 @@ function setupEventListeners() {
     }
   });
 
-  // Photo file input
+  // Photo file & camera inputs (Solo Admin)
   $('formPhotoFile')?.addEventListener('change', e => handlePhotoFile(e.target.files[0]));
-  $('btnChoosePhoto')?.addEventListener('click', () => $('formPhotoFile').click());
+  $('formPhotoCamera')?.addEventListener('change', e => handlePhotoFile(e.target.files[0]));
+  $('btnChoosePhoto')?.addEventListener('click', () => { if (isAdminUser(currentCloudUser)) $('formPhotoFile')?.click(); });
+  $('btnCameraPhoto')?.addEventListener('click', () => { if (isAdminUser(currentCloudUser)) $('formPhotoCamera')?.click(); });
   $('btnRemovePhoto')?.addEventListener('click', () => {
+    if (!isAdminUser(currentCloudUser)) return;
     currentPhotoDataUrl = null;
-    $('formPhotoFile').value          = '';
-    $('formPhotoPreview').src         = '';
-    $('formPhotoPreview').style.display = 'none';
-    $('photoPlaceholder').style.display = '';
-    $('btnRemovePhoto').style.display   = 'none';
+    if ($('formPhotoFile')) $('formPhotoFile').value = '';
+    if ($('formPhotoCamera')) $('formPhotoCamera').value = '';
+    if ($('formPhotoPreview')) $('formPhotoPreview').src = generateBoxartSvg({ name: $('formName')?.value || 'MODELLO', scale: $('formScale')?.value || '1:24', kitCode: $('formKitCode')?.value || '' });
+    if ($('btnRemovePhoto')) $('btnRemovePhoto').style.display = 'none';
   });
   $('photoDropArea')?.addEventListener('click', e => {
     if (e.target === $('photoPlaceholder') || $('photoPlaceholder').contains(e.target)) {
@@ -3221,26 +3365,31 @@ function setupEventListeners() {
     showToast('✓ Scatola originale salvata per ' + activeBoxartModel.name + '!', 'cyan');
   });
 
-  // File upload for boxart
-  $('boxartFileInput')?.addEventListener('change', e => {
+  // File upload & camera capture for boxart (Solo Admin, compressa max 1000px)
+  const handleBoxartImageInput = async e => {
+    if (!isAdminUser(currentCloudUser)) return;
     const file = e.target.files[0];
     if (!file || !activeBoxartModel) return;
-    const reader = new FileReader();
-    reader.onload = async evt => {
-      const dataUrl = evt.target.result;
+    try {
+      const dataUrl = await compressImageFile(file, 1000, 0.82);
       activeBoxartModel.photo = dataUrl;
       await saveModel(activeBoxartModel);
       $('boxartPreviewImg').src = dataUrl;
-      $('boxartPreviewBadge').textContent = '📷 FOTO CARICATA';
+      $('boxartPreviewBadge').textContent = '📷 FOTO OTTIMIZZATA';
       $('boxartPreviewBadge').style.background = '#0055ff';
       renderGrid();
       if ($('detailModalBackdrop').style.display !== 'none') {
         openDetailModal(activeBoxartModel);
       }
-      showToast('✓ Foto della scatola caricata con successo!', 'cyan');
-    };
-    reader.readAsDataURL(file);
-  });
+      showToast('✓ Foto ottimizzata (max 1000px) salvata con successo!', 'cyan');
+    } catch (err) {
+      console.error('Errore compressione foto boxart:', err);
+      showToast('Errore elaborazione immagine', 'error');
+    }
+    e.target.value = '';
+  };
+  $('boxartFileInput')?.addEventListener('change', handleBoxartImageInput);
+  $('boxartCameraInput')?.addEventListener('change', handleBoxartImageInput);
 
   // Restore SVG packaging
   $('btnBoxartRestoreSvg')?.addEventListener('click', async () => {
