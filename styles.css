@@ -4174,3 +4174,124 @@ input[name="formStatus"]:checked + .status-radio-pill {
     padding: 8px 12px;
   }
 }
+
+
+/* ─── GUIDA ALL'USO & REGOLAMENTO (HEADER BUTTON + MODAL) ──────────────────── */
+.sticky-top-bar .strip-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 12px;
+  background: #172B24;
+  color: #F4F0E4;
+  border: 2px solid #2E4A40;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 2px 2px 0 #07100D;
+  transition: all 0.15s ease;
+}
+.header-guide-btn:hover {
+  background: #E3B23C;
+  color: #0F1F1A;
+  border-color: #E3B23C;
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 #07100D;
+}
+
+.guide-sections-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guide-card {
+  background: #172B24;
+  border: 1.5px solid #2E4A40;
+  border-left: 4px solid #E3B23C;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.guide-card-rules {
+  border-left-color: #D62828;
+}
+
+.guide-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.guide-card-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.guide-card-header h4 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 15px;
+  color: #F4F0E4;
+  letter-spacing: 0.01em;
+}
+
+.guide-card-lead {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #F4F0E4;
+}
+
+.guide-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guide-list li {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #F4F0E4;
+}
+.guide-list li strong {
+  color: #E3B23C;
+}
+.guide-card-rules .guide-list li strong {
+  color: #F4F0E4;
+}
+
+@media (max-width: 560px) {
+  .header-guide-btn {
+    padding: 6px 10px;
+    font-size: 10.5px;
+  }
+  .guide-card {
+    padding: 12px 13px;
+  }
+  .guide-card-header h4 {
+    font-size: 14px;
+  }
+  .guide-card-lead,
+  .guide-list li {
+    font-size: 13px;
+  }
+}
