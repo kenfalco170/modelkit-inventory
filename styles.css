@@ -4295,3 +4295,17 @@ input[name="formStatus"]:checked + .status-radio-pill {
     font-size: 13px;
   }
 }
+
+.guide-card-legal {
+  border-left-color: #9DB5AA;
+}
+.guide-email-link {
+  color: #E3B23C;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.guide-email-link:hover {
+  color: #F4F0E4;
+}
