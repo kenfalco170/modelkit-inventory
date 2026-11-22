@@ -107,6 +107,7 @@ const KNOWN_KIT_BRANDS = [
   'Trumpeter',
   'Union',
   'Wave',
+  'Zoukei-Mura',
   'Zvezda'
 ];
 
@@ -997,6 +998,8 @@ let isSyncing112Batch = false;
 let isSyncingExtra120Batch = false;
 let isSyncingExtra148Batch = false;
 let isSyncingExtra124Batch = false;
+let isSyncingExtra172Batch = false;
+let isSyncingExtra132Batch = false;
 let cachedBetaSlotCount = null;
 let lastReportedModelsCount = -1;
 
@@ -1289,6 +1292,12 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof EXTRA_1_24_MODELS !== 'undefined' && Array.isArray(EXTRA_1_24_MODELS)
         ? EXTRA_1_24_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_72_MODELS !== 'undefined' && Array.isArray(EXTRA_1_72_MODELS)
+        ? EXTRA_1_72_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_32_MODELS !== 'undefined' && Array.isArray(EXTRA_1_32_MODELS)
+        ? EXTRA_1_32_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -1943,6 +1952,128 @@ function startFirestoreListener() {
           })();
         } else {
           isSyncingExtra124Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Aerei 1:72 multimarca
+    if (!isSyncingExtra172Batch && typeof EXTRA_1_72_MODELS !== 'undefined' && Array.isArray(EXTRA_1_72_MODELS) && EXTRA_1_72_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra172Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if ((m.scale === '1:72' || m.scale === '1/72') && kc) {
+          existingExtra172Codes.add(kc);
+        }
+      });
+      if (existingExtra172Codes.size < 30) {
+        isSyncingExtra172Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtra172Models = [];
+        for (const m of EXTRA_1_72_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra172Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:72',
+            category: 'Aerei / Velivoli',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtra172Models.push(newItem);
+          if (kc) existingExtra172Codes.add(kc);
+        }
+        if (addedExtra172Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtra172Models.length; i += BATCH_SIZE) {
+                const chunk = addedExtra172Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`✈️ Aggiunti ${addedExtra172Models.length} kit aerei 1:72 in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1:72:', e);
+              isSyncingExtra172Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra172Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Aerei 1:32 multimarca
+    if (!isSyncingExtra132Batch && typeof EXTRA_1_32_MODELS !== 'undefined' && Array.isArray(EXTRA_1_32_MODELS) && EXTRA_1_32_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra132Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if ((m.scale === '1:32' || m.scale === '1/32') && kc) {
+          existingExtra132Codes.add(kc);
+        }
+      });
+      if (existingExtra132Codes.size < 30) {
+        isSyncingExtra132Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtra132Models = [];
+        for (const m of EXTRA_1_32_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra132Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:32',
+            category: 'Aerei / Velivoli',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtra132Models.push(newItem);
+          if (kc) existingExtra132Codes.add(kc);
+        }
+        if (addedExtra132Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtra132Models.length; i += BATCH_SIZE) {
+                const chunk = addedExtra132Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`✈️ Aggiunti ${addedExtra132Models.length} kit aerei 1:32 in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1:32:', e);
+              isSyncingExtra132Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra132Batch = false;
         }
       }
     }
@@ -3018,6 +3149,12 @@ function getBoxartPath(model) {
   }
   if (kitCode && typeof EXTRA_1_24_BOXARTS !== 'undefined' && EXTRA_1_24_BOXARTS[kitCode]) {
     return EXTRA_1_24_BOXARTS[kitCode];
+  }
+  if (kitCode && typeof EXTRA_1_72_BOXARTS !== 'undefined' && EXTRA_1_72_BOXARTS[kitCode]) {
+    return EXTRA_1_72_BOXARTS[kitCode];
+  }
+  if (kitCode && typeof EXTRA_1_32_BOXARTS !== 'undefined' && EXTRA_1_32_BOXARTS[kitCode]) {
+    return EXTRA_1_32_BOXARTS[kitCode];
   }
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
