@@ -1005,7 +1005,6 @@ let isSyncingExtra148Batch = false;
 let isSyncingExtra124Batch = false;
 let isSyncingExtra172Batch = false;
 let isSyncingExtra132Batch = false;
-let isSyncingExtra143Batch = false;
 let isSyncingExtra135Batch = false;
 let cachedBetaSlotCount = null;
 let lastReportedModelsCount = -1;
@@ -1305,9 +1304,6 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof EXTRA_1_32_MODELS !== 'undefined' && Array.isArray(EXTRA_1_32_MODELS)
         ? EXTRA_1_32_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
-        : []),
-      ...(typeof EXTRA_1_43_MODELS !== 'undefined' && Array.isArray(EXTRA_1_43_MODELS)
-        ? EXTRA_1_43_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : []),
       ...(typeof EXTRA_1_35_MODELS !== 'undefined' && Array.isArray(EXTRA_1_35_MODELS)
         ? EXTRA_1_35_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
@@ -2091,65 +2087,35 @@ function startFirestoreListener() {
       }
     }
 
-    // Popolamento automatico Auto 1:43 multimarca (Tameo Kits, Heller, Starter, Provence Moulage, BBR, Racing43, Model Factory Hiro, Arena Modelli)
-    if (!isSyncingExtra143Batch && typeof EXTRA_1_43_MODELS !== 'undefined' && Array.isArray(EXTRA_1_43_MODELS) && EXTRA_1_43_MODELS.length > 0 && cloudModels.length > 0) {
-      const existingExtra143Codes = new Set();
-      cloudModels.forEach(m => {
-        const kc = String(m.kitCode || '').trim().toLowerCase();
-        if ((m.scale === '1:43' || m.scale === '1/43') && kc) {
-          existingExtra143Codes.add(kc);
-        }
-      });
-      if (existingExtra143Codes.size < 30) {
-        isSyncingExtra143Batch = true;
-        const nowIso = new Date().toISOString();
-        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
-        const addedExtra143Models = [];
-        for (const m of EXTRA_1_43_MODELS) {
-          const kc = String(m.kitCode || '').trim().toLowerCase();
-          if (kc && existingExtra143Codes.has(kc)) continue;
-          maxId++;
-          const newItem = {
-            ...m,
-            id: maxId,
-            status: 'WISHLIST',
-            progress: 0,
-            stage: 'Non Iniziato (Backlog)',
-            location: '',
-            purchasePrice: 0,
-            estimatedValue: 0,
-            aftermarket: '',
-            photo: null,
-            scale: '1:43',
-            category: m.category || 'Sport Car',
-            addedAt: nowIso
-          };
-          cloudModels.push(newItem);
-          addedExtra143Models.push(newItem);
-          if (kc) existingExtra143Codes.add(kc);
-        }
-        if (addedExtra143Models.length > 0 && userCol) {
-          (async () => {
-            try {
-              const BATCH_SIZE = 250;
-              for (let i = 0; i < addedExtra143Models.length; i += BATCH_SIZE) {
-                const chunk = addedExtra143Models.slice(i, i + BATCH_SIZE);
-                const batch = firestoreDb.batch();
-                for (const item of chunk) {
-                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
-                }
-                await batch.commit();
-              }
-              showToast(`🏎️ Aggiunti ${addedExtra143Models.length} kit auto 1:43 in Wishlist!`, 'cyan');
-            } catch (e) {
-              console.warn('Errore upload batch Extra 1:43:', e);
-              isSyncingExtra143Batch = false;
-            }
-          })();
-        } else {
-          isSyncingExtra143Batch = false;
+    // Rimozione una tantum dei kit 1:43 eventualmente già sincronizzati nell'archivio
+    const remove143FlagKey = `modelkit_remove_143_v1_${activeUserId}`;
+    if (!localStorage.getItem(remove143FlagKey) && cloudModels.length > 0) {
+      const ids143ToDelete = [];
+      for (let i = cloudModels.length - 1; i >= 0; i--) {
+        const sc = String(cloudModels[i].scale || '').trim();
+        if (sc === '1:43' || sc === '1/43') {
+          ids143ToDelete.push(String(cloudModels[i].id));
+          cloudModels.splice(i, 1);
         }
       }
+      if (ids143ToDelete.length > 0 && userCol) {
+        (async () => {
+          try {
+            const BATCH_SIZE = 250;
+            for (let i = 0; i < ids143ToDelete.length; i += BATCH_SIZE) {
+              const chunk = ids143ToDelete.slice(i, i + BATCH_SIZE);
+              const batch = firestoreDb.batch();
+              for (const docId of chunk) {
+                batch.delete(userCol.doc(docId));
+              }
+              await batch.commit();
+            }
+          } catch (e) {
+            console.warn('Errore eliminazione batch 1:43 su Firestore:', e);
+          }
+        })();
+      }
+      localStorage.setItem(remove143FlagKey, '1');
     }
 
     // Popolamento automatico Mezzi Militari 1:35 multimarca (Tamiya, Dragon, Meng, Takom, Italeri, Trumpeter, Academy, MiniArt)
@@ -2360,7 +2326,6 @@ function getFilteredSorted() {
       if (filterScale === '1:12') return m.scale === '1:12' || m.scale === '1/12';
       if (filterScale === '1:32') return m.scale === '1:32' || m.scale === '1/32';
       if (filterScale === '1:35') return m.scale === '1:35' || m.scale === '1/35';
-      if (filterScale === '1:43') return m.scale === '1:43' || m.scale === '1/43';
       if (filterScale === '1:48') return m.scale === '1:48' || m.scale === '1/48';
       if (filterScale === '1:72') return m.scale === '1:72' || m.scale === '1/72';
       return m.scale === filterScale;
@@ -3290,9 +3255,6 @@ function getBoxartPath(model) {
   }
   if (kitCode && typeof EXTRA_1_32_BOXARTS !== 'undefined' && EXTRA_1_32_BOXARTS[kitCode]) {
     return EXTRA_1_32_BOXARTS[kitCode];
-  }
-  if (kitCode && typeof EXTRA_1_43_BOXARTS !== 'undefined' && EXTRA_1_43_BOXARTS[kitCode]) {
-    return EXTRA_1_43_BOXARTS[kitCode];
   }
   if (kitCode && typeof EXTRA_1_35_BOXARTS !== 'undefined' && EXTRA_1_35_BOXARTS[kitCode]) {
     return EXTRA_1_35_BOXARTS[kitCode];
