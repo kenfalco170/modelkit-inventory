@@ -1206,6 +1206,9 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     if (loginSection) loginSection.style.display = 'none';
     if ($('authValuationSection')) $('authValuationSection').style.display = '';
     if ($('adminUsersSection')) $('adminUsersSection').style.display = isAdminUser(user) ? '' : 'none';
+    const hasPasswordProvider = Array.isArray(user.providerData) && user.providerData.some(p => p && p.providerId === 'password');
+    if ($('authChangePasswordSection')) $('authChangePasswordSection').style.display = hasPasswordProvider ? 'flex' : 'none';
+    if ($('authGooglePwdNote')) $('authGooglePwdNote').style.display = hasPasswordProvider ? 'none' : 'block';
   } else {
     if (badge) {
       badge.textContent = '🔒 ACCESSO RICHIESTO';
@@ -1226,6 +1229,13 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     if (loginSection) loginSection.style.display = 'flex';
     if ($('authValuationSection')) $('authValuationSection').style.display = 'none';
     if ($('adminUsersSection')) $('adminUsersSection').style.display = 'none';
+    if ($('authChangePasswordSection')) $('authChangePasswordSection').style.display = 'none';
+    if ($('authGooglePwdNote')) $('authGooglePwdNote').style.display = 'none';
+    if ($('authChangePasswordForm')) {
+      $('authChangePasswordForm').style.display = 'none';
+      $('authChangePasswordForm').reset();
+    }
+    if ($('changePasswordFeedback')) $('changePasswordFeedback').style.display = 'none';
   }
 }
 
@@ -3886,6 +3896,99 @@ function setupEventListeners() {
   $('authEmailForm')?.addEventListener('submit', e => {
     e.preventDefault();
     handleLoginUser();
+  });
+
+  // Cambio Password nel menu Utente (solo account Email/Password)
+  function showChangePasswordFeedback(msg, isSuccess = false) {
+    const fb = $('changePasswordFeedback');
+    if (!fb) return;
+    fb.style.display = 'block';
+    fb.style.background = isSuccess ? 'rgba(227, 178, 60, 0.16)' : 'rgba(214, 40, 40, 0.22)';
+    fb.style.border = isSuccess ? '1.5px solid #E3B23C' : '1.5px solid #D62828';
+    fb.style.color = '#F4F0E4';
+    fb.textContent = `${isSuccess ? '✓ ' : '⚠️ '}${msg}`;
+  }
+
+  $('btnToggleChangePassword')?.addEventListener('click', () => {
+    const form = $('authChangePasswordForm');
+    if (!form) return;
+    const isHidden = form.style.display === 'none' || !form.style.display;
+    form.style.display = isHidden ? 'flex' : 'none';
+    if (!isHidden) {
+      form.reset();
+      if ($('changePasswordFeedback')) $('changePasswordFeedback').style.display = 'none';
+    } else {
+      $('authCurrentPassword')?.focus();
+    }
+  });
+
+  $('authChangePasswordForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!firebaseAuth || !currentCloudUser || !currentCloudUser.email) {
+      showChangePasswordFeedback('Devi essere connesso per cambiare la password.');
+      return;
+    }
+    const currentPwd = $('authCurrentPassword') ? $('authCurrentPassword').value : '';
+    const newPwd     = $('authNewPassword') ? $('authNewPassword').value : '';
+    const confirmPwd = $('authConfirmPassword') ? $('authConfirmPassword').value : '';
+
+    if (!currentPwd) {
+      showChangePasswordFeedback('Inserisci la password attuale.');
+      return;
+    }
+    if (newPwd.length < 6) {
+      showChangePasswordFeedback('La nuova password deve contenere almeno 6 caratteri.');
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      showChangePasswordFeedback('Le due nuove password non coincidono.');
+      return;
+    }
+    if (newPwd === currentPwd) {
+      showChangePasswordFeedback('La nuova password deve essere diversa da quella attuale.');
+      return;
+    }
+
+    const submitBtn = $('btnSaveNewPassword');
+    if (submitBtn) submitBtn.disabled = true;
+    showChangePasswordFeedback('Verifica e aggiornamento password in corso...', true);
+
+    try {
+      const cred = firebase.auth.EmailAuthProvider.credential(currentCloudUser.email, currentPwd);
+      await currentCloudUser.reauthenticateWithCredential(cred);
+      await currentCloudUser.updatePassword(newPwd);
+      $('authChangePasswordForm')?.reset();
+      showChangePasswordFeedback('Password aggiornata con successo!', true);
+      showToast('✓ Password aggiornata con successo!', 'cyan');
+    } catch (err) {
+      console.error('Errore cambio password:', err);
+      const code = err && err.code ? err.code : '';
+      let msg = 'Impossibile aggiornare la password. Riprova.';
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        msg = 'Password attuale errata. Riprova oppure usa "Reset via email".';
+      } else if (code === 'auth/weak-password') {
+        msg = 'La nuova password è troppo debole (usa almeno 6 caratteri).';
+      } else if (code === 'auth/too-many-requests') {
+        msg = 'Troppi tentativi falliti. Attendi qualche minuto e riprova.';
+      } else if (code === 'auth/requires-recent-login') {
+        msg = 'Sessione scaduta: disconnettiti e riaccedi prima di cambiare password.';
+      }
+      showChangePasswordFeedback(msg, false);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  $('btnSendResetEmail')?.addEventListener('click', async () => {
+    if (!firebaseAuth || !currentCloudUser || !currentCloudUser.email) return;
+    try {
+      await firebaseAuth.sendPasswordResetEmail(currentCloudUser.email);
+      showChangePasswordFeedback(`Email di ripristino inviata a ${currentCloudUser.email}. Controlla anche lo spam.`, true);
+      showToast('📧 Email di reset password inviata!', 'cyan');
+    } catch (err) {
+      console.error('Errore invio email reset:', err);
+      showChangePasswordFeedback('Errore nell\'invio dell\'email di reset. Riprova tra poco.', false);
+    }
   });
 
   // Logout Utente

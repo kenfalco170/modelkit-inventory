@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="mymodelkit-vintage-icon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
@@ -733,7 +733,51 @@
           </div>
         </div>
 
-        <div id="authLogoutSection" style="display: none; flex-direction: column; gap: 0.5rem;">
+        <div id="authLogoutSection" style="display: none; flex-direction: column; gap: 0.75rem;">
+          <!-- Sezione Cambio Password (solo per account Email/Password) -->
+          <div id="authChangePasswordSection" style="display: none; flex-direction: column; gap: 0.65rem; background: #172B24; border: 1.5px solid #2E4A40; border-radius: 10px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: #9DB5AA; letter-spacing: 0.08em;">// SICUREZZA ACCOUNT</span>
+              <button type="button" class="btn-micro" id="btnToggleChangePassword">🔑 CAMBIA PASSWORD</button>
+            </div>
+
+            <form id="authChangePasswordForm" style="display: none; flex-direction: column; gap: 0.65rem; padding-top: 6px; border-top: 1px solid #2E4A40;" autocomplete="off">
+              <div class="form-group">
+                <label for="authCurrentPassword" class="form-label">PASSWORD ATTUALE *</label>
+                <div class="input-well">
+                  <input type="password" id="authCurrentPassword" required placeholder="Inserisci password attuale" class="cockpit-input" autocomplete="current-password">
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="authNewPassword" class="form-label">NUOVA PASSWORD * (min. 6 car.)</label>
+                  <div class="input-well">
+                    <input type="password" id="authNewPassword" required minlength="6" placeholder="Nuova password" class="cockpit-input" autocomplete="new-password">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="authConfirmPassword" class="form-label">CONFERMA NUOVA PASSWORD *</label>
+                  <div class="input-well">
+                    <input type="password" id="authConfirmPassword" required minlength="6" placeholder="Ripeti nuova password" class="cockpit-input" autocomplete="new-password">
+                  </div>
+                </div>
+              </div>
+              <div id="changePasswordFeedback" style="display: none; padding: 8px 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.4;"></div>
+              <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+                <button type="submit" class="arcade-turbo-btn" id="btnSaveNewPassword" style="flex: 1; justify-content: center;">
+                  ✓ SALVA NUOVA PASSWORD
+                </button>
+                <button type="button" class="btn-micro" id="btnSendResetEmail" title="Invia link di ripristino alla tua email">
+                  📧 RESET VIA EMAIL
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div id="authGooglePwdNote" style="display: none; padding: 8px 12px; border-radius: 8px; background: #11231D; border: 1px solid #2E4A40; font-family: var(--font-mono); font-size: 10px; color: #9DB5AA;">
+            🌐 Accesso tramite Google: la password si gestisce direttamente dal tuo Account Google.
+          </div>
+
           <button type="button" class="arcade-action-btn card-btn-danger" id="btnAuthLogout" style="width: 100%; justify-content: center;">
             🚪 DISCONNETTI ACCOUNT
           </button>
@@ -813,7 +857,7 @@
   <script src="extra120.js?v=1"></script>
   <script src="extra148.js?v=1"></script>
   <script src="extra124.js?v=1"></script>
-  <script src="app.js?v=44"></script>
+  <script src="app.js?v=45"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
