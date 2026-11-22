@@ -41,9 +41,11 @@ const KNOWN_KIT_BRANDS = [
   'AMT',
   'Amusing Hobby',
   'Aoshima',
+  'Arena Modelli',
   'Arii',
   'Atlantis',
   'Bandai',
+  'BBR',
   'Bburago',
   'Beemax / NuNu',
   'Belkits',
@@ -92,6 +94,8 @@ const KNOWN_KIT_BRANDS = [
   'Polar Lights',
   'Profil24',
   'Protar',
+  'Provence Moulage',
+  'Racing43',
   'Revell',
   'Roden',
   'Rosso',
@@ -99,6 +103,7 @@ const KNOWN_KIT_BRANDS = [
   'Scale Production',
   'Smer',
   'Special Hobby',
+  'Starter',
   'Studio27',
   'Takom',
   'Tameo Kits',
@@ -1000,6 +1005,7 @@ let isSyncingExtra148Batch = false;
 let isSyncingExtra124Batch = false;
 let isSyncingExtra172Batch = false;
 let isSyncingExtra132Batch = false;
+let isSyncingExtra143Batch = false;
 let cachedBetaSlotCount = null;
 let lastReportedModelsCount = -1;
 
@@ -1298,6 +1304,9 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof EXTRA_1_32_MODELS !== 'undefined' && Array.isArray(EXTRA_1_32_MODELS)
         ? EXTRA_1_32_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_43_MODELS !== 'undefined' && Array.isArray(EXTRA_1_43_MODELS)
+        ? EXTRA_1_43_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -2074,6 +2083,67 @@ function startFirestoreListener() {
           })();
         } else {
           isSyncingExtra132Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Auto 1:43 multimarca (Tameo Kits, Heller, Starter, Provence Moulage, BBR, Racing43, Model Factory Hiro, Arena Modelli)
+    if (!isSyncingExtra143Batch && typeof EXTRA_1_43_MODELS !== 'undefined' && Array.isArray(EXTRA_1_43_MODELS) && EXTRA_1_43_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra143Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if ((m.scale === '1:43' || m.scale === '1/43') && kc) {
+          existingExtra143Codes.add(kc);
+        }
+      });
+      if (existingExtra143Codes.size < 30) {
+        isSyncingExtra143Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtra143Models = [];
+        for (const m of EXTRA_1_43_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra143Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:43',
+            category: m.category || 'Sport Car',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtra143Models.push(newItem);
+          if (kc) existingExtra143Codes.add(kc);
+        }
+        if (addedExtra143Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtra143Models.length; i += BATCH_SIZE) {
+                const chunk = addedExtra143Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`🏎️ Aggiunti ${addedExtra143Models.length} kit auto 1:43 in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1:43:', e);
+              isSyncingExtra143Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra143Batch = false;
         }
       }
     }
@@ -3156,6 +3226,9 @@ function getBoxartPath(model) {
   if (kitCode && typeof EXTRA_1_32_BOXARTS !== 'undefined' && EXTRA_1_32_BOXARTS[kitCode]) {
     return EXTRA_1_32_BOXARTS[kitCode];
   }
+  if (kitCode && typeof EXTRA_1_43_BOXARTS !== 'undefined' && EXTRA_1_43_BOXARTS[kitCode]) {
+    return EXTRA_1_43_BOXARTS[kitCode];
+  }
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
   const brandLower = (model.brand || '').trim().toLowerCase();
@@ -4138,10 +4211,33 @@ function setupEventListeners() {
     showToast('Account disconnesso', 'amber');
   });
 
+  // Guida all'uso & Regolamento Modal
+  function openGuideModal() {
+    const modal = $('guideModalBackdrop');
+    if (!modal) return;
+    modal.style.display = '';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeGuideModal() {
+    const modal = $('guideModalBackdrop');
+    if (!modal) return;
+    modal.style.display = 'none';
+    if (!$('authModalBackdrop') || $('authModalBackdrop').style.display === 'none') {
+      document.body.style.overflow = '';
+    }
+  }
+  $('btnHeaderGuide')?.addEventListener('click', openGuideModal);
+  $('btnGuideClose')?.addEventListener('click', closeGuideModal);
+  $('btnGuideCloseFooter')?.addEventListener('click', closeGuideModal);
+  $('guideModalBackdrop')?.addEventListener('click', e => {
+    if (e.target === $('guideModalBackdrop')) closeGuideModal();
+  });
+
   // Escape key to close modals (tranne authModal se non autenticato)
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if ($('modelModalBackdrop').style.display !== 'none') closeModal('modelModalBackdrop');
+      if ($('guideModalBackdrop') && $('guideModalBackdrop').style.display !== 'none') closeGuideModal();
+      else if ($('modelModalBackdrop').style.display !== 'none') closeModal('modelModalBackdrop');
       else if ($('boxartModalBackdrop').style.display !== 'none') closeBoxartModal();
       else if ($('detailModalBackdrop').style.display !== 'none') closeModal('detailModalBackdrop');
       else if ($('authModalBackdrop') && $('authModalBackdrop').style.display !== 'none' && isAuthenticatedUser(currentCloudUser)) closeAuthModal();

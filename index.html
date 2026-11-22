@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="mymodelkit-vintage-icon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
@@ -26,6 +26,7 @@
       <span class="telemetry-sub" id="clockTelemetry">TIME: --:--:--</span>
     </div>
     <div class="strip-right">
+      <button type="button" class="header-guide-btn" id="btnHeaderGuide" title="Apri Guida all'uso e Regolamento" aria-haspopup="dialog" aria-controls="guideModalBackdrop">❓ GUIDA</button>
       <button type="button" class="user-account-sticky-btn" id="btnHeaderUsers" title="Gestisci account e visualizza Investment &amp; Value">👤 UTENTI / LOGIN</button>
     </div>
   </nav>
@@ -859,6 +860,70 @@
     </div>
   </div>
 
+  <!-- Modal: Guida all'uso & Regolamento -->
+  <div class="modal-backdrop" id="guideModalBackdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle">
+    <div class="modal-console-window detail-console">
+      <div class="modal-window-header">
+        <div class="modal-title-box">
+          <span class="modal-tag">MYMODELKIT // MANUALE &amp; REGOLE</span>
+          <h3 id="guideModalTitle">GUIDA ALL'USO &amp; REGOLAMENTO</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnGuideClose" aria-label="Chiudi guida">&times;</button>
+      </div>
+
+      <div class="detail-body-content guide-sections-stack">
+        <!-- Sezione 1 -->
+        <section class="guide-card">
+          <div class="guide-card-header">
+            <span class="guide-card-icon" aria-hidden="true">📘</span>
+            <h4>1. Cos'è e come funziona</h4>
+          </div>
+          <p class="guide-card-lead">
+            <strong>mymodelkit</strong> è il tuo scaffale digitale per catalogare i kit di modellismo statico (auto, moto, Formula 1, rally e aerei nelle scale <strong>1:12, 1:20, 1:24, 1:32, 1:35, 1:43, 1:48 e 1:72</strong>) e avere sempre in tasca la tua collezione senza rischiare doppioni.
+          </p>
+          <ul class="guide-list">
+            <li><strong>Archivio personale sincronizzato:</strong> al primo accesso ottieni il tuo database privato nel cloud (con copia locale automatica sul dispositivo) già popolato con il catalogo di scatole originali e box art.</li>
+            <li><strong>Hangar &amp; Vetrina Modelli:</strong> usa i filtri in cima alla pagina (<em>Stato, Scala, Categoria, Ordina per, Ricerca e Marca Kit</em>) per trovare subito qualsiasi kit e clicca su <strong>Dettagli</strong> per aprire la scheda completa.</li>
+            <li><strong>Stato e valore sempre sotto controllo:</strong> dal menu Utente in alto a destra puoi consultare in tempo reale il riepilogo della collezione (kit per scala, spesa acquisto, valore stimato e avanzamento WIP).</li>
+          </ul>
+        </section>
+
+        <!-- Sezione 2 -->
+        <section class="guide-card">
+          <div class="guide-card-header">
+            <span class="guide-card-icon" aria-hidden="true">✅</span>
+            <h4>2. Cosa puoi fare</h4>
+          </div>
+          <ul class="guide-list">
+            <li><strong>Registrarti e accedere da più dispositivi:</strong> crea il tuo account personale con Email/Password o Google per sincronizzare automaticamente il tuo inventario tra PC e smartphone Android.</li>
+            <li><strong>Gestire il tuo stato su ogni kit:</strong> nella scheda <em>Dettagli</em> puoi aggiornare lo stato personale (<em>In Possesso, Acquistato in Arrivo, In Costruzione, Costruito, Mancante/Wishlist, Non Interessato</em>), impostare la percentuale <strong>WIP (0–100%)</strong> e scrivere le tue <strong>note personali</strong>.</li>
+            <li><strong>Esplorare e filtrare la Vetrina:</strong> combina filtri per scala, marca, categoria o codice scatola e azzera tutto in un clic con <em>✕ RESET FILTRI</em>.</li>
+            <li><strong>Salvare e ripristinare il tuo backup:</strong> esporta in qualsiasi momento la tua collezione in formato JSON (<em>💾 SALVA BACKUP</em>) e re-importala quando desideri (<em>📂 IMPORTA</em>).</li>
+            <li><strong>Gestire la sicurezza dell'account:</strong> dal menu Utente puoi cambiare password, richiedere il reset via email, consultare la Privacy Policy o disconnetterti.</li>
+          </ul>
+        </section>
+
+        <!-- Sezione 3 -->
+        <section class="guide-card guide-card-rules">
+          <div class="guide-card-header">
+            <span class="guide-card-icon" aria-hidden="true">🚫</span>
+            <h4>3. Cosa NON puoi fare (Limitazioni e Regole)</h4>
+          </div>
+          <ul class="guide-list">
+            <li><strong>Modifiche al catalogo base e caricamento foto:</strong> la creazione/eliminazione di schede catalogo e il caricamento o lo scatto di nuove fotografie sono riservati esclusivamente all'amministratore, per mantenere il catalogo ordinato e proteggere lo spazio di archiviazione.</li>
+            <li><strong>Accesso ai dati di altri utenti:</strong> non è possibile visualizzare, modificare o eliminare l'inventario o le note di altri account; ogni utente opera solo nel proprio archivio privato.</li>
+            <li><strong>Limite di posti Beta Test:</strong> durante il programma di test chiuso l'accesso è limitato a un massimo di <strong>20 tester</strong>; al raggiungimento del limite le nuove registrazioni sono temporaneamente sospese.</li>
+            <li><strong>Contenuti vietati e uso corretto:</strong> è vietato inserire nelle note testi offensivi, illegali, protetti da copyright altrui o non pertinenti al modellismo statico, così come tentare di aggirare i limiti del sistema o abusare dello spazio cloud.</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button type="button" class="arcade-turbo-btn" id="btnGuideCloseFooter">✓ HO CAPITO</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase Cloud SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -871,7 +936,8 @@
   <script src="extra124.js?v=1"></script>
   <script src="extra172.js?v=1"></script>
   <script src="extra132.js?v=1"></script>
-  <script src="app.js?v=47"></script>
+  <script src="extra143.js?v=1"></script>
+  <script src="app.js?v=49"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
