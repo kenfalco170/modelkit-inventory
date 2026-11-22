@@ -1006,6 +1006,7 @@ let isSyncingExtra124Batch = false;
 let isSyncingExtra172Batch = false;
 let isSyncingExtra132Batch = false;
 let isSyncingExtra143Batch = false;
+let isSyncingExtra135Batch = false;
 let cachedBetaSlotCount = null;
 let lastReportedModelsCount = -1;
 
@@ -1307,6 +1308,9 @@ async function seedNewUserPersonalArchive() {
         : []),
       ...(typeof EXTRA_1_43_MODELS !== 'undefined' && Array.isArray(EXTRA_1_43_MODELS)
         ? EXTRA_1_43_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
+        : []),
+      ...(typeof EXTRA_1_35_MODELS !== 'undefined' && Array.isArray(EXTRA_1_35_MODELS)
+        ? EXTRA_1_35_MODELS.map(m => ({ ...m, status: 'WISHLIST', progress: 0, addedAt: nowIso }))
         : [])
     ];
 
@@ -2144,6 +2148,67 @@ function startFirestoreListener() {
           })();
         } else {
           isSyncingExtra143Batch = false;
+        }
+      }
+    }
+
+    // Popolamento automatico Mezzi Militari 1:35 multimarca (Tamiya, Dragon, Meng, Takom, Italeri, Trumpeter, Academy, MiniArt)
+    if (!isSyncingExtra135Batch && typeof EXTRA_1_35_MODELS !== 'undefined' && Array.isArray(EXTRA_1_35_MODELS) && EXTRA_1_35_MODELS.length > 0 && cloudModels.length > 0) {
+      const existingExtra135Codes = new Set();
+      cloudModels.forEach(m => {
+        const kc = String(m.kitCode || '').trim().toLowerCase();
+        if ((m.scale === '1:35' || m.scale === '1/35') && kc) {
+          existingExtra135Codes.add(kc);
+        }
+      });
+      if (existingExtra135Codes.size < 30) {
+        isSyncingExtra135Batch = true;
+        const nowIso = new Date().toISOString();
+        let maxId = cloudModels.reduce((mx, m) => Math.max(mx, parseInt(m.id, 10) || 0), 0);
+        const addedExtra135Models = [];
+        for (const m of EXTRA_1_35_MODELS) {
+          const kc = String(m.kitCode || '').trim().toLowerCase();
+          if (kc && existingExtra135Codes.has(kc)) continue;
+          maxId++;
+          const newItem = {
+            ...m,
+            id: maxId,
+            status: 'WISHLIST',
+            progress: 0,
+            stage: 'Non Iniziato (Backlog)',
+            location: '',
+            purchasePrice: 0,
+            estimatedValue: 0,
+            aftermarket: '',
+            photo: null,
+            scale: '1:35',
+            category: 'Mezzi Militari',
+            addedAt: nowIso
+          };
+          cloudModels.push(newItem);
+          addedExtra135Models.push(newItem);
+          if (kc) existingExtra135Codes.add(kc);
+        }
+        if (addedExtra135Models.length > 0 && userCol) {
+          (async () => {
+            try {
+              const BATCH_SIZE = 250;
+              for (let i = 0; i < addedExtra135Models.length; i += BATCH_SIZE) {
+                const chunk = addedExtra135Models.slice(i, i + BATCH_SIZE);
+                const batch = firestoreDb.batch();
+                for (const item of chunk) {
+                  batch.set(userCol.doc(String(item.id)), { ...item, id: item.id }, { merge: true });
+                }
+                await batch.commit();
+              }
+              showToast(`🪖 Aggiunti ${addedExtra135Models.length} kit mezzi militari 1:35 in Wishlist!`, 'cyan');
+            } catch (e) {
+              console.warn('Errore upload batch Extra 1:35:', e);
+              isSyncingExtra135Batch = false;
+            }
+          })();
+        } else {
+          isSyncingExtra135Batch = false;
         }
       }
     }
@@ -3228,6 +3293,9 @@ function getBoxartPath(model) {
   }
   if (kitCode && typeof EXTRA_1_43_BOXARTS !== 'undefined' && EXTRA_1_43_BOXARTS[kitCode]) {
     return EXTRA_1_43_BOXARTS[kitCode];
+  }
+  if (kitCode && typeof EXTRA_1_35_BOXARTS !== 'undefined' && EXTRA_1_35_BOXARTS[kitCode]) {
+    return EXTRA_1_35_BOXARTS[kitCode];
   }
   if (kitCode && BOXART_LOCAL[kitCode]) return BOXART_LOCAL[kitCode];
 
