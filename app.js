@@ -2092,14 +2092,11 @@ function getFilteredSorted() {
         return m.scale === '1:24' || m.scale === '1/24';
       }
       if (filterScale === '1:12') return m.scale === '1:12' || m.scale === '1/12';
-      if (filterScale === '1:18') return m.scale === '1:18' || m.scale === '1/18';
-      if (filterScale === '1:43') return m.scale === '1:43' || m.scale === '1/43';
+      if (filterScale === '1:32') return m.scale === '1:32' || m.scale === '1/32';
       if (filterScale === '1:35') return m.scale === '1:35' || m.scale === '1/35';
+      if (filterScale === '1:43') return m.scale === '1:43' || m.scale === '1/43';
       if (filterScale === '1:48') return m.scale === '1:48' || m.scale === '1/48';
-      if (filterScale === 'OTHER') {
-        const standardScales = ['1/20', '1:20', '1/20 Grand Prix', 'Formula 1', '1:24', '1/24', '1:12', '1/12', '1:18', '1/18', '1:43', '1/43', '1:35', '1/35', '1:48', '1/48'];
-        return !standardScales.includes(m.scale);
-      }
+      if (filterScale === '1:72') return m.scale === '1:72' || m.scale === '1/72';
       return m.scale === filterScale;
     });
   }
