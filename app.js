@@ -16,7 +16,8 @@ const STATUS_LABELS = {
   WIP:            '🔧 In Costruzione',
   BACKLOG:        '📦 In Possesso (Da Costruire)',
   IN_TRANSIT:     '🚚 Acquistato in Arrivo',
-  WISHLIST:       '🔍 Mancante (Wishlist)',
+  DESIRED:        '⭐ Lista dei Desideri',
+  WISHLIST:       '🔍 Mancante',
   NOT_INTERESTED: '🚫 Mancante (Non Interessato)',
   OTHER:          '📌 Altro'
 };
@@ -27,6 +28,7 @@ const STATUS_COLORS = {
   WIP:            'var(--neon-amber)',
   BACKLOG:        '#4488ff',
   IN_TRANSIT:     '#0d9488',
+  DESIRED:        '#E3B23C',
   WISHLIST:       'var(--neon-orange)',
   NOT_INTERESTED: '#dc2626',
   OTHER:          '#64748b'
@@ -2915,7 +2917,7 @@ async function handleFormSubmit(e) {
 
   // Auto-set progress for certain statuses
   if (model.status === 'COMPLETED') model.progress = 100;
-  if (model.status === 'BACKLOG' || model.status === 'IN_TRANSIT' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
+  if (model.status === 'BACKLOG' || model.status === 'IN_TRANSIT' || model.status === 'DESIRED' || model.status === 'WISHLIST' || model.status === 'NOT_INTERESTED' || model.status === 'OTHER') {
     if (model.progress === 0) model.stage = 'Non Iniziato (Backlog)';
   }
 
@@ -4101,10 +4103,10 @@ function setupEventListeners() {
     handleLoginUser();
   });
 
-  // Stampa lista Mancanti (Wishlist) dal menu Utente
+  // Stampa Lista dei Desideri dal menu Utente
   function printWishlistReport() {
-    const missing = allModels
-      .filter(m => m.status === 'WISHLIST')
+    const desired = allModels
+      .filter(m => m.status === 'DESIRED')
       .sort((a, b) => {
         const sCmp = String(a.scale || '').localeCompare(String(b.scale || ''), undefined, { numeric: true, sensitivity: 'base' });
         if (sCmp !== 0) return sCmp;
@@ -4113,8 +4115,8 @@ function setupEventListeners() {
         return String(a.kitCode || a.name || '').localeCompare(String(b.kitCode || b.name || ''), undefined, { numeric: true, sensitivity: 'base' });
       });
 
-    if (missing.length === 0) {
-      showToast('✓ Nessun modellino mancante in Wishlist da stampare!', 'cyan');
+    if (desired.length === 0) {
+      showToast('⭐ Nessun modellino nella tua Lista dei Desideri da stampare!', 'cyan');
       return;
     }
 
@@ -4123,7 +4125,7 @@ function setupEventListeners() {
       : 'Utente';
     const dateStr = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-    const rowsHtml = missing.map((m, idx) => {
+    const rowsHtml = desired.map((m, idx) => {
       const code = escHtml(m.kitCode || '—');
       const desc = escHtml(m.name || 'Senza nome');
       const brand = m.brand ? ` <span class="brand-sub">(${escHtml(m.brand)})</span>` : '';
@@ -4141,7 +4143,7 @@ function setupEventListeners() {
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>mymodelkit — Lista Mancanti (Wishlist)</title>
+  <title>mymodelkit — Lista dei Desideri</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, Helvetica, sans-serif; color: #14213D; background: #fff; padding: 20px; font-size: 12px; }
@@ -4176,11 +4178,11 @@ function setupEventListeners() {
   </div>
   <div class="doc-header">
     <div>
-      <h1>mymodelkit — LISTA MANCANTI (WISHLIST)</h1>
+      <h1>mymodelkit — LISTA DEI DESIDERI</h1>
     </div>
     <div class="doc-meta">
       <div><strong>Utente:</strong> ${userLabel}</div>
-      <div><strong>Data:</strong> ${dateStr} · <strong>Totale mancanti:</strong> ${missing.length} kit</div>
+      <div><strong>Data:</strong> ${dateStr} · <strong>Totale in lista:</strong> ${desired.length} kit</div>
     </div>
   </div>
   <div class="twin-bar"></div>

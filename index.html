@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=24">
+  <link rel="stylesheet" href="styles.css?v=25">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="mymodelkit-vintage-icon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
@@ -70,6 +70,7 @@
                   <option value="IN_TRANSIT">🚚 ACQUISTATO IN ARRIVO</option>
                   <option value="WIP">🔧 IN COSTRUZIONE</option>
                   <option value="COMPLETED">🏆 COSTRUITO</option>
+                  <option value="DESIRED">⭐ LISTA DEI DESIDERI</option>
                   <option value="WISHLIST">🔍 MANCANTE</option>
                   <option value="NOT_INTERESTED">🚫 MANCANTE (NON INT.)</option>
                   <option value="OTHER">📌 ALTRO</option>
@@ -337,7 +338,11 @@
               <div class="status-radio-deck" id="formStatusDeck">
                 <label class="status-radio-pill">
                   <input type="radio" name="formStatus" value="WISHLIST" checked>
-                  <span class="pill-body">🔍 MANCANTE (Wishlist)</span>
+                  <span class="pill-body">🔍 MANCANTE</span>
+                </label>
+                <label class="status-radio-pill">
+                  <input type="radio" name="formStatus" value="DESIRED">
+                  <span class="pill-body">⭐ LISTA DEI DESIDERI</span>
                 </label>
                 <label class="status-radio-pill">
                   <input type="radio" name="formStatus" value="BACKLOG">
@@ -746,9 +751,9 @@
         </div>
 
         <div id="authLogoutSection" style="display: none; flex-direction: column; gap: 0.75rem;">
-          <!-- Stampa Lista Mancanti (Wishlist) -->
+          <!-- Stampa Lista dei Desideri -->
           <button type="button" class="arcade-action-btn" id="btnPrintWishlist" style="width: 100%; justify-content: center;">
-            🖨️ STAMPA MANCANTI (WISHLIST)
+            🖨️ STAMPA LISTA DEI DESIDERI
           </button>
 
           <!-- Sezione Cambio Password (solo per account Email/Password) -->
@@ -954,7 +959,7 @@
   <script src="extra172.js?v=1"></script>
   <script src="extra132.js?v=1"></script>
   <script src="extra135.js?v=1"></script>
-  <script src="app.js?v=53"></script>
+  <script src="app.js?v=54"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

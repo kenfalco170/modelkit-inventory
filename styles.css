@@ -3633,6 +3633,7 @@ textarea:disabled {
 /* Badge di stato sobri: bordo #2E4A40 e testo crema #F4F0E4 senza colori accesi */
 .card-status-badge,
 .card-status-badge.status-WISHLIST,
+.card-status-badge.status-DESIRED,
 .card-status-badge.status-BACKLOG,
 .card-status-badge.status-IN_TRANSIT,
 .card-status-badge.status-WIP,
