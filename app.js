@@ -2712,19 +2712,31 @@ function openNewModelModal() {
   $('formPhotoPreview').style.display  = 'block';
   $('formPhotoPreview').src     = generateBoxartSvg({ name: 'NUOVO MODELLO', scale: '1:24', kitCode: 'TAMIYA KIT' });
   $('modalWindowTitle').textContent    = 'REGISTRAZIONE NUOVO MODELLINO';
+  setCatalogFieldsLocked(false);
   if ($('btnDeleteInEditModal')) $('btnDeleteInEditModal').style.setProperty('display', 'none', 'important');
   $('modelModalBackdrop').style.display = '';
   document.body.style.overflow  = 'hidden';
 }
 
+function setCatalogFieldsLocked(locked) {
+  ['formName', 'formBrand', 'formScale', 'formKitCode', 'formCategory'].forEach(id => {
+    const el = $(id);
+    if (el) el.disabled = locked;
+  });
+  const photoButtons = document.querySelector('#modelModalBackdrop .photo-buttons-row');
+  if (photoButtons) photoButtons.style.display = locked ? 'none' : '';
+}
+
 function openEditModelModal(model) {
-  if (!isAdminUser(currentCloudUser)) {
-    showToast('🔒 Solo l\'Admin può modificare le schede catalogo', 'error');
+  if (!isAuthenticatedUser(currentCloudUser)) {
+    showToast('🔒 Effettua l\'accesso per modificare i tuoi kit', 'error');
     return;
   }
+  const isAdmin = isAdminUser(currentCloudUser);
   editingId           = model.id;
   currentPhotoDataUrl = model.photo || null;
-  if ($('btnRemovePhoto')) $('btnRemovePhoto').style.display = currentPhotoDataUrl ? '' : 'none';
+  setCatalogFieldsLocked(!isAdmin);
+  if ($('btnRemovePhoto')) $('btnRemovePhoto').style.display = (isAdmin && currentPhotoDataUrl) ? '' : 'none';
   $('formModelId').value        = model.id;
   $('formName').value           = model.name || '';
   $('formBrand').value          = model.brand || '';
@@ -2803,44 +2815,13 @@ function openDetailModal(model) {
   const valueDisplay = m => (m > 0 ? '€ ' + parseFloat(m).toFixed(2) : '—');
 
   const isAdmin = isAdminUser(currentCloudUser);
+  const canEdit = isAuthenticatedUser(currentCloudUser);
 
-  const personalUpdatePanel = !isAdmin ? `
-    <div style="background:#141C19; border:1px solid #2E3F38; border-left:3px solid #F59E0B; border-radius:6px; padding:12px 14px; display:flex; flex-direction:column; gap:10px;">
-      <span style="font-family:var(--font-mono); font-size:10px; font-weight:800; color:#F59E0B; letter-spacing:0.08em;">// AGGIORNA IL TUO STATO PERSONALE</span>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="control-pod">
-          <label class="control-pod-label" for="userQuickStatus">STATO MODELLINO</label>
-          <div class="telemetry-select-wrapper">
-            <select id="userQuickStatus" class="telemetry-select">
-              <option value="BACKLOG" ${model.status === 'BACKLOG' ? 'selected' : ''}>📦 IN POSSESSO</option>
-              <option value="IN_TRANSIT" ${model.status === 'IN_TRANSIT' ? 'selected' : ''}>🚚 ACQUISTATO IN ARRIVO</option>
-              <option value="WIP" ${model.status === 'WIP' ? 'selected' : ''}>🔧 IN COSTRUZIONE</option>
-              <option value="COMPLETED" ${model.status === 'COMPLETED' ? 'selected' : ''}>🏆 COSTRUITO</option>
-              <option value="WISHLIST" ${model.status === 'WISHLIST' ? 'selected' : ''}>🔍 MANCANTE</option>
-              <option value="NOT_INTERESTED" ${model.status === 'NOT_INTERESTED' ? 'selected' : ''}>🚫 MANCANTE (NON INT.)</option>
-              <option value="OTHER" ${model.status === 'OTHER' ? 'selected' : ''}>📌 ALTRO</option>
-            </select>
-            <span class="select-indicator">▼</span>
-          </div>
-        </div>
-        <div class="control-pod">
-          <label class="control-pod-label" for="userQuickProgress">AVANZAMENTO WIP: <strong id="userQuickProgressVal" style="color:#FCD34D;">${model.progress || 0}%</strong></label>
-          <input type="range" id="userQuickProgress" min="0" max="100" step="5" value="${model.progress || 0}" style="width:100%; accent-color:#F59E0B; margin-top:8px;">
-        </div>
-      </div>
-      <div class="control-pod">
-        <label class="control-pod-label" for="userQuickNotes">NOTE PERSONALI</label>
-        <textarea id="userQuickNotes" rows="2" class="cockpit-textarea" style="background:#111816; border:1px solid #2E3F38; border-radius:4px; padding:8px; color:#E8EFEA; font-family:var(--font-mono); font-size:11px;" placeholder="Aggiungi note personali sul tuo kit...">${escHtml(model.notes || '')}</textarea>
-      </div>
-      <button type="button" class="arcade-turbo-btn" id="btnUserQuickSave" style="justify-content:center;">💾 SALVA STATO PERSONALE</button>
-    </div>` : '';
-
-  const adminActionsHtml = isAdmin ? `
+  const editActionHtml = canEdit ? `
       <button class="arcade-action-btn" id="detailEditBtn">✏️ MODIFICA</button>` : '';
 
   c.innerHTML = `
     ${photoSection}
-    ${personalUpdatePanel}
     <div class="detail-info-grid">
       <div class="detail-info-block" style="grid-column: 1 / -1;"><span class="detail-info-label">DESCRIZIONE E CODICE KIT</span><span class="detail-info-value" style="font-size:16px; color:#F3F7F5; font-weight:800;">${escHtml(model.name)}${model.kitCode ? ` — ${escHtml(model.kitCode)}` : ''}</span></div>
       <div class="detail-info-block"><span class="detail-info-label">MODELLO</span><span class="detail-info-value">${escHtml(model.name)}</span></div>
@@ -2874,64 +2855,48 @@ function openDetailModal(model) {
       <div class="detail-notes-block">${escHtml(model.notes)}</div>
     </div>` : ''}
     <div class="detail-actions-row">
-      ${adminActionsHtml}
+      ${editActionHtml}
       <button class="arcade-turbo-btn" onclick="document.getElementById('detailModalBackdrop').style.display='none';document.body.style.overflow='';">✓ CHIUDI</button>
     </div>`;
 
   $('detailModalBackdrop').style.display = '';
   document.body.style.overflow = 'hidden';
 
-  if (isAdmin) {
+  if (canEdit) {
     $('detailEditBtn')?.addEventListener('click', () => {
       closeModal('detailModalBackdrop');
       openEditModelModal(model);
     });
-  } else {
-    $('userQuickProgress')?.addEventListener('input', e => {
-      if ($('userQuickProgressVal')) $('userQuickProgressVal').textContent = e.target.value + '%';
-    });
-    $('btnUserQuickSave')?.addEventListener('click', async () => {
-      const newStatus   = $('userQuickStatus') ? $('userQuickStatus').value : model.status;
-      let   newProgress = $('userQuickProgress') ? (parseInt($('userQuickProgress').value, 10) || 0) : (model.progress || 0);
-      const newNotes    = $('userQuickNotes') ? $('userQuickNotes').value.trim() : (model.notes || '');
-      if (newStatus === 'COMPLETED') newProgress = 100;
-      const updated = {
-        ...model,
-        status: newStatus,
-        progress: newProgress,
-        notes: newNotes,
-        updatedAt: new Date().toISOString()
-      };
-      try {
-        await saveModel(updated);
-        allModels = await getAllModels();
-        renderGrid();
-        refreshStats();
-        closeModal('detailModalBackdrop');
-        showToast('✓ Stato personale salvato!', 'cyan');
-      } catch (err) {
-        console.error('Errore salvataggio stato personale:', err);
-        showToast('Errore nel salvataggio!', 'error');
-      }
-    });
   }
 }
 
-// ─── FORM SUBMIT (SOLO ADMIN) ────────────────────────────────────────────────
+// ─── FORM SUBMIT (ADMIN: TUTTO | UTENTE: SOLO DATI PERSONALI) ────────────────
 async function handleFormSubmit(e) {
   e.preventDefault();
-  if (!isAdminUser(currentCloudUser)) {
-    showToast('🔒 Solo l\'Admin può salvare o creare schede catalogo', 'error');
+  if (!isAuthenticatedUser(currentCloudUser)) {
+    showToast('🔒 Effettua l\'accesso per salvare le modifiche', 'error');
+    return;
+  }
+
+  const isAdmin = isAdminUser(currentCloudUser);
+  if (!isAdmin && !editingId) {
+    showToast('🔒 Solo l\'Admin può creare nuove schede nel catalogo', 'error');
+    return;
+  }
+
+  const existing = editingId ? allModels.find(m => m.id === editingId) : null;
+  if (!isAdmin && !existing) {
+    showToast('Errore: scheda modellino non trovata', 'error');
     return;
   }
 
   const statusRadio = document.querySelector('input[name="formStatus"]:checked');
   const model = {
-    name:           $('formName').value.trim(),
-    brand:          $('formBrand').value.trim(),
-    scale:          $('formScale').value,
-    kitCode:        $('formKitCode').value.trim(),
-    category:       $('formCategory').value,
+    name:           isAdmin ? $('formName').value.trim()     : existing.name,
+    brand:          isAdmin ? $('formBrand').value.trim()    : existing.brand,
+    scale:          isAdmin ? $('formScale').value           : existing.scale,
+    kitCode:        isAdmin ? $('formKitCode').value.trim()  : (existing.kitCode || ''),
+    category:       isAdmin ? $('formCategory').value        : (existing.category || 'Sport Car'),
     status:         statusRadio ? statusRadio.value : 'WISHLIST',
     progress:       parseInt($('formProgress').value, 10) || 0,
     stage:          $('formStage').value,
@@ -2944,7 +2909,7 @@ async function handleFormSubmit(e) {
     decalsOriginal:    $('formDecalsOriginal') ? $('formDecalsOriginal').value.trim() : '',
     decalsAftermarket: $('formDecalsAftermarket') ? $('formDecalsAftermarket').value.trim() : '',
     notes:          $('formNotes').value.trim(),
-    photo:          currentPhotoDataUrl || null,
+    photo:          isAdmin ? (currentPhotoDataUrl || null) : (existing.photo || null),
     updatedAt:      new Date().toISOString()
   };
 
@@ -3861,6 +3826,7 @@ function setupEventListeners() {
     if ($('btnRemovePhoto')) $('btnRemovePhoto').style.display = 'none';
   });
   $('photoDropArea')?.addEventListener('click', e => {
+    if (!isAdminUser(currentCloudUser)) return;
     if (e.target === $('photoPlaceholder') || $('photoPlaceholder').contains(e.target)) {
       $('formPhotoFile').click();
     }
