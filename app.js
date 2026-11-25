@@ -4101,6 +4101,141 @@ function setupEventListeners() {
     handleLoginUser();
   });
 
+  // Stampa lista Mancanti (Wishlist) dal menu Utente
+  function printWishlistReport() {
+    const missing = allModels
+      .filter(m => m.status === 'WISHLIST')
+      .sort((a, b) => {
+        const sCmp = String(a.scale || '').localeCompare(String(b.scale || ''), undefined, { numeric: true, sensitivity: 'base' });
+        if (sCmp !== 0) return sCmp;
+        const bCmp = String(a.brand || '').localeCompare(String(b.brand || ''), 'it', { sensitivity: 'base' });
+        if (bCmp !== 0) return bCmp;
+        return String(a.kitCode || a.name || '').localeCompare(String(b.kitCode || b.name || ''), undefined, { numeric: true, sensitivity: 'base' });
+      });
+
+    if (missing.length === 0) {
+      showToast('✓ Nessun modellino mancante in Wishlist da stampare!', 'cyan');
+      return;
+    }
+
+    const userLabel = currentCloudUser
+      ? escHtml(currentCloudUser.displayName || currentCloudUser.email || 'Utente')
+      : 'Utente';
+    const dateStr = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    const rowsHtml = missing.map((m, idx) => {
+      const code = escHtml(m.kitCode || '—');
+      const desc = escHtml(m.name || 'Senza nome');
+      const brand = m.brand ? ` <span class="brand-sub">(${escHtml(m.brand)})</span>` : '';
+      const scale = escHtml(m.scale === '1/20' ? '1:20' : (m.scale || '—'));
+      return `<tr>
+        <td class="col-chk">☐</td>
+        <td class="col-num">${idx + 1}</td>
+        <td class="col-code">${code}</td>
+        <td class="col-desc">${desc}${brand}</td>
+        <td class="col-scale">${scale}</td>
+      </tr>`;
+    }).join('');
+
+    const htmlDoc = `<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>mymodelkit — Lista Mancanti (Wishlist)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #14213D; background: #fff; padding: 20px; font-size: 12px; }
+    .print-toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 14px; }
+    .print-toolbar button { padding: 8px 16px; border: 2px solid #14213D; background: #E3B23C; color: #0F1F1A; font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .print-toolbar button.btn-close { background: #f4f0e4; color: #14213D; }
+    .doc-header { border-bottom: 3px solid #14213D; padding-bottom: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
+    .doc-header h1 { font-family: 'Arial Black', Arial, sans-serif; font-style: italic; font-size: 20px; color: #14213D; }
+    .doc-meta { font-size: 11px; color: #3C4A68; text-align: right; }
+    .twin-bar { height: 5px; background: linear-gradient(90deg, #E3B23C 0 50%, #D62828 50% 100%); margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { display: table-header-group; }
+    th { background: #14213D; color: #F4F0E4; text-align: left; padding: 7px 8px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid #14213D; }
+    td { padding: 6px 8px; border: 1px solid #cbd5e1; vertical-align: top; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    .col-chk { width: 26px; text-align: center; font-size: 14px; }
+    .col-num { width: 38px; text-align: right; color: #64748b; }
+    .col-code { width: 145px; font-family: Consolas, monospace; font-weight: 700; white-space: nowrap; }
+    .col-scale { width: 64px; text-align: center; font-family: Consolas, monospace; font-weight: 700; white-space: nowrap; }
+    .brand-sub { color: #475569; font-size: 11px; }
+    @media print {
+      body { padding: 0; }
+      .print-toolbar { display: none !important; }
+      tr { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-toolbar">
+    <button type="button" onclick="window.print()">🖨️ STAMPA / SALVA PDF</button>
+    <button type="button" class="btn-close" onclick="window.close()">✕ CHIUDI</button>
+  </div>
+  <div class="doc-header">
+    <div>
+      <h1>mymodelkit — LISTA MANCANTI (WISHLIST)</h1>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Utente:</strong> ${userLabel}</div>
+      <div><strong>Data:</strong> ${dateStr} · <strong>Totale mancanti:</strong> ${missing.length} kit</div>
+    </div>
+  </div>
+  <div class="twin-bar"></div>
+  <table>
+    <thead>
+      <tr>
+        <th class="col-chk">✓</th>
+        <th class="col-num">#</th>
+        <th class="col-code">Codice</th>
+        <th>Descrizione</th>
+        <th class="col-scale">Scala</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml}
+    </tbody>
+  </table>
+</body>
+</html>`;
+
+    const printWin = window.open('', '_blank');
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(htmlDoc);
+      printWin.document.close();
+      printWin.focus();
+      setTimeout(() => {
+        try { printWin.print(); } catch {}
+      }, 300);
+    } else {
+      // Fallback senza popup (es. browser mobile restrittivi) tramite iframe nascosto
+      let iframe = document.getElementById('wishlistPrintFrame');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'wishlistPrintFrame';
+        iframe.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:0;';
+        document.body.appendChild(iframe);
+      }
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(htmlDoc);
+      doc.close();
+      setTimeout(() => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch {
+          showToast('⚠️ Consenti i popup per aprire l\'anteprima di stampa', 'amber');
+        }
+      }, 300);
+    }
+  }
+
+  $('btnPrintWishlist')?.addEventListener('click', printWishlistReport);
+
   // Cambio Password nel menu Utente (solo account Email/Password)
   function showChangePasswordFeedback(msg, isSuccess = false) {
     const fb = $('changePasswordFeedback');

@@ -746,6 +746,11 @@
         </div>
 
         <div id="authLogoutSection" style="display: none; flex-direction: column; gap: 0.75rem;">
+          <!-- Stampa Lista Mancanti (Wishlist) -->
+          <button type="button" class="arcade-action-btn" id="btnPrintWishlist" style="width: 100%; justify-content: center;">
+            🖨️ STAMPA MANCANTI (WISHLIST)
+          </button>
+
           <!-- Sezione Cambio Password (solo per account Email/Password) -->
           <div id="authChangePasswordSection" style="display: none; flex-direction: column; gap: 0.65rem; background: #172B24; border: 1.5px solid #2E4A40; border-radius: 10px; padding: 12px 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -949,7 +954,7 @@
   <script src="extra172.js?v=1"></script>
   <script src="extra132.js?v=1"></script>
   <script src="extra135.js?v=1"></script>
-  <script src="app.js?v=52"></script>
+  <script src="app.js?v=53"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
