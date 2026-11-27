@@ -1215,6 +1215,7 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     }
     if (logoutSection) logoutSection.style.display = 'flex';
     if (loginSection) loginSection.style.display = 'none';
+    if ($('btnPrintWishlist')) $('btnPrintWishlist').style.display = 'inline-flex';
     if ($('authValuationSection')) $('authValuationSection').style.display = '';
     if ($('adminUsersSection')) $('adminUsersSection').style.display = isAdminUser(user) ? '' : 'none';
     const hasPasswordProvider = Array.isArray(user.providerData) && user.providerData.some(p => p && p.providerId === 'password');
@@ -1238,6 +1239,7 @@ function updateAuthUI(user, errorMsg = null, isSuccessMsg = false) {
     }
     if (logoutSection) logoutSection.style.display = 'none';
     if (loginSection) loginSection.style.display = 'flex';
+    if ($('btnPrintWishlist')) $('btnPrintWishlist').style.display = 'none';
     if ($('authValuationSection')) $('authValuationSection').style.display = 'none';
     if ($('adminUsersSection')) $('adminUsersSection').style.display = 'none';
     if ($('authChangePasswordSection')) $('authChangePasswordSection').style.display = 'none';
@@ -2398,8 +2400,15 @@ function refreshStats() {
 
   const completionPct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const wipRatio      = total > 0 ? Math.round((wip / total) * 100) : 0;
-  const totalPurchase = allModels.reduce((s, m) => s + (parseFloat(m.purchasePrice) || 0), 0);
-  const totalEstimated= allModels.reduce((s, m) => s + (parseFloat(m.estimatedValue) || 0), 0);
+  const parseEuroAmount = v => {
+    if (v === null || v === undefined || v === '') return 0;
+    const n = parseFloat(String(v).replace(',', '.'));
+    return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0;
+  };
+  const totalPurchaseCents  = allModels.reduce((s, m) => s + Math.round(parseEuroAmount(m.purchasePrice) * 100), 0);
+  const totalEstimatedCents = allModels.reduce((s, m) => s + Math.round(parseEuroAmount(m.estimatedValue) * 100), 0);
+  const totalPurchase  = totalPurchaseCents / 100;
+  const totalEstimated = totalEstimatedCents / 100;
 
   // Update DOM (con controlli null-safe per elementi rimossi dalla pagina principale)
   if ($('statCompletedCount')) $('statCompletedCount').textContent = completed;
@@ -2754,8 +2763,10 @@ function openEditModelModal(model) {
   $('formCategory').value       = formCatVal;
   $('formLocation').value       = model.location || '';
   $('formYear').value           = model.year || '';
-  $('formPurchasePrice').value  = model.purchasePrice || '';
-  $('formEstimatedValue').value = model.estimatedValue || '';
+  const pPrice = parseFloat(String(model.purchasePrice ?? '').replace(',', '.'));
+  const eVal   = parseFloat(String(model.estimatedValue ?? '').replace(',', '.'));
+  $('formPurchasePrice').value  = (Number.isFinite(pPrice) && pPrice > 0) ? pPrice.toFixed(2) : '';
+  $('formEstimatedValue').value = (Number.isFinite(eVal) && eVal > 0) ? eVal.toFixed(2) : '';
   $('formPaints').value         = model.paints || '';
   $('formAftermarket').value    = model.aftermarket || '';
   if ($('formDecalsOriginal')) $('formDecalsOriginal').value = model.decalsOriginal || '';
@@ -2904,8 +2915,8 @@ async function handleFormSubmit(e) {
     stage:          $('formStage').value,
     location:       $('formLocation').value.trim(),
     year:           $('formYear').value.trim(),
-    purchasePrice:  parseFloat($('formPurchasePrice').value) || 0,
-    estimatedValue: parseFloat($('formEstimatedValue').value) || 0,
+    purchasePrice:  (() => { const n = parseFloat(String($('formPurchasePrice').value || '').replace(',', '.')); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : 0; })(),
+    estimatedValue: (() => { const n = parseFloat(String($('formEstimatedValue').value || '').replace(',', '.')); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : 0; })(),
     paints:         $('formPaints').value.trim(),
     aftermarket:       $('formAftermarket').value.trim(),
     decalsOriginal:    $('formDecalsOriginal') ? $('formDecalsOriginal').value.trim() : '',
